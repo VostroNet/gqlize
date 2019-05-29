@@ -1,5 +1,5 @@
 import Database from "../../src/manager";
-import SequelizeAdapter from "../../src/adapters/sequelize";
+import SequelizeAdapter from "@vostro/gqlize-adapter-sequelize";
 import createBasicFieldsFunc from "../../src/graphql/create-basic-fields";
 
 import {

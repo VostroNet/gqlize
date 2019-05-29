@@ -1,9 +1,10 @@
 language: node_js
 node_js:
   - "node"
+  - "10"
   - "8"
   - "7"
   - "6"
 before_script:
-  - npm install -g gulp
+  - yarn add gulp
 script: gulp test

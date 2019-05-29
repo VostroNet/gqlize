@@ -4,7 +4,7 @@ import {graphql} from "graphql";
 // import {createSchema} from "../src/graphql/index";
 import Sequelize from "sequelize";
 import {toGlobalId} from "graphql-relay";
-import SequelizeAdapter from "../src/adapters/sequelize";
+import SequelizeAdapter from "@vostro/gqlize-adapter-sequelize";
 import Database from "../src/manager";
 import {createSchema} from "../src/graphql/index";
 

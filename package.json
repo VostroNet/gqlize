@@ -1,18 +1,19 @@
 {
-  "name": "sql2gql",
+  "name": "@vostro/gqlize",
   "version": "4.0.0-alpha1",
-  "description": "Two way Sequelize to GraphQL bridge, extending out graphql-sequelize",
+  "description": "A relational databinder for generating graphql schemas to connect and work with multi data sources",
   "main": "lib/index.js",
   "scripts": {
     "test": "gulp test",
     "express": "node -r \"@babel/register\" ./__tests__/helper/express.js",
+    "print-schema": "node -r \"@babel/register\" ./__tests__/helper/print.js",
     "prepublishOnly": ""
   },
   "author": "VostroNet",
   "license": "GPL-3.0",
-  "homepage": "https://github.com/VostroNet/sql2gql",
+  "homepage": "https://github.com/VostroNet/gqlize",
   "bugs": {
-    "url": "https://github.com/VostroNet/sql2gql/issues"
+    "url": "https://github.com/VostroNet/gqlize/issues"
   },
   "devEngines": {
     "node": "8.x || 9.x || 10.x",
@@ -20,10 +21,13 @@
   },
   "devDependencies": {
     "@babel/core": "^7.4.4",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
     "@babel/plugin-proposal-object-rest-spread": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
     "@babel/register": "^7.4.4",
     "@types/jest": "^24.0.13",
+    "@vostro/gqlize-adapter-sequelize": "4.0.0",
+    "@vostro/graphql-types": "1.0.0",
     "apollo-server-express": "^2.5.0",
     "babel-eslint": "^10.0.1",
     "body-parser": "^1.19.0",
@@ -51,14 +55,13 @@
     "uuid": "^3.3.2"
   },
   "peerDependencies": {
+    "@vostro/graphql-types": "^1.0.0",
     "graphql": "^14.3.0",
     "graphql-relay": "^0.6.0",
     "graphql-sequelize": "^9.3.6",
     "sequelize": "^5.8.6"
   },
   "dependencies": {
-    "@babel/plugin-proposal-class-properties": "^7.4.4",
-    "@vostro/graphql-types": "^2019.5.854",
     "core-js": "^3.0.1",
     "deepmerge": "^3.2.0",
     "pluralize": "^7.0.0"
