@@ -365,9 +365,10 @@ export default class GQLManager {
         }
         if (args.update) {
           await waterfall(args.update, async(arg) => {
-            const {where, input} = arg;
+            const {where, limit, input} = arg;
             // const [result] = await this.processUpdate(targetName, source, {input: arg}, context, info);
             const targets = await source[relationship.accessors.get](Object.assign({
+              limit,
               where: await targetAdapter.processFilterArgument(replaceIdDeep(where, targetGlobalKeys, info.variableValues), targetDef.whereOperators),
             }, defaultOptions));
             let i = await this.processInputs(targetName, input, source, args, context, info);
@@ -498,7 +499,7 @@ export default class GQLManager {
     }
     const results = await processUpdate(where, (model) => {
       return this.processInputs(defName, i, source, args, context, info, model);
-    }, createGetGraphQLArgsFunc(context, info, source));
+    }, createGetGraphQLArgsFunc(context, info, source, {limit: args.limit}));
 
     await waterfall(results, async(r) => {
       await this.processRelationshipMutation(defName, r, args.input, context, info);
@@ -571,8 +572,17 @@ function getSelectionFields(startNode, targetName) {
 
 
 function getSelectionSet(node, targetName = "node") {
+  if (!node) {
+    return undefined;
+  }
   if (node.name.value === targetName) {
     return node;
+  }
+  if (!node.selectionSet) {
+    return undefined;
+  }
+  if (!Array.isArray(node.selectionSet.selections)) {
+    return undefined;
   }
   for (let i = 0; i < node.selectionSet.selections.length; i++) {
     const result = getSelectionSet(node.selectionSet.selections[i], targetName);

@@ -1,5 +1,5 @@
 import {
-  GraphQLInputObjectType, GraphQLNonNull, GraphQLScalarType, GraphQLEnumType, GraphQLList
+  GraphQLInputObjectType, GraphQLNonNull, GraphQLScalarType, GraphQLEnumType, GraphQLList, GraphQLInt,
 } from "graphql";
 
 import createGQLInputObject from "./create-gql-input-object";
@@ -39,10 +39,10 @@ export function generateInputFields(instance, defName, definition, fields, relat
       }
     }
     if (!o[key]) {
-      const type = instance.getGraphQLInputType(defName, key, field.type);
+      const type = instance.getGraphQLInputType(defName, `${key}${forceOptional ? "Optional" : "Required"}`, field.type);
+      let t = field.allowNull || field.autoPopulated || forceOptional ? type : new GraphQLNonNull(type);
       o[key] = {
-        type: field.allowNull || field.autoPopulated || !forceOptional
-          ? type : new GraphQLNonNull(type),
+        type: t,
       };
     }
     return o;
@@ -110,7 +110,7 @@ export default function createMutationInput(instance, defName, schemaCache, inpu
   const required = createGQLInputObject(`${defName}RequiredInput`, function() {
     return generateInputFields(instance, defName, definition, fields, relationships, inputTypes, schemaCache, false);
   }, schemaCache);
-  const optional = createGQLInputObject(`${defName}RequiredInput`, function() {
+  const optional = createGQLInputObject(`${defName}OptionalInput`, function() {
     return generateInputFields(instance, defName, definition, fields, relationships, inputTypes, schemaCache, true);
   }, schemaCache);
   const filterType = instance.getFilterGraphQLType(defName);
@@ -120,6 +120,9 @@ export default function createMutationInput(instance, defName, schemaCache, inpu
     update: new GraphQLList(createGQLInputObject(`${defName}UpdateInput`, {
       where: {
         type: filterType,
+      },
+      limit: {
+        type: GraphQLInt,
       },
       input: {
         type: optional,
