@@ -558,10 +558,15 @@ function createGetGraphQLArgsFunc(context, info, source, options = {}) {
 
 function getSelectionFields(startNode, targetName) {
   const targetNode = getSelectionSet(startNode, targetName);
-  return targetNode.selectionSet.selections.reduce((o, k) => {
-    o.push(k.name.value);
-    return o;
-  }, []);
+  if (targetNode) {
+    if (targetNode.selectionSet) {
+      return targetNode.selectionSet.selections.reduce((o, k) => {
+        o.push(k.name.value);
+        return o;
+      }, []);
+    }
+  }
+  return undefined;
 }
 
 
