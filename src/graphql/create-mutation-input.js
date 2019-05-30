@@ -1,5 +1,6 @@
 import {
   GraphQLInputObjectType, GraphQLNonNull, GraphQLScalarType, GraphQLEnumType, GraphQLList, GraphQLInt,
+  GraphQLID,
 } from "graphql";
 
 import createGQLInputObject from "./create-gql-input-object";
@@ -39,11 +40,17 @@ export function generateInputFields(instance, defName, definition, fields, relat
       }
     }
     if (!o[key]) {
-      const type = instance.getGraphQLInputType(defName, `${key}${forceOptional ? "Optional" : "Required"}`, field.type);
-      let t = field.allowNull || field.autoPopulated || forceOptional ? type : new GraphQLNonNull(type);
-      o[key] = {
-        type: t,
-      };
+      if (instance.getGlobalKeys(defName).indexOf(key) > -1) {
+        o[key] = {
+          type: GraphQLID,
+        };
+      } else {
+        const type = instance.getGraphQLInputType(defName, `${key}${forceOptional ? "Optional" : "Required"}`, field.type);
+        let t = field.allowNull || field.autoPopulated || forceOptional ? type : new GraphQLNonNull(type);
+        o[key] = {
+          type: t,
+        };
+      }
     }
     return o;
   }, {});

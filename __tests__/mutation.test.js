@@ -306,6 +306,35 @@ describe("mutations", () => {
     validateResult(result);
     return expect(result.data.models.Task[0].mutationCheck).toEqual("update");
   });
+
+  it("update - ensure input foreignKeys are types of GraphQLID", async() => {
+    const instance = await createInstance();
+    const {Task, TaskItem} = instance.models;
+    const task = await Task.create({
+      name: "task2",
+    });
+
+    const taskItem = await TaskItem.create({
+      name: "item1234",
+    });
+    const schema = await createSchema(instance);
+    const taskId = toGlobalId("Task", task.id);
+    const taskItemId = toGlobalId("TaskItem", task.id);
+    const mutation = `mutation {
+      models {
+        TaskItem(update: {where: {id: "${taskItemId}"}, input: {taskId: "${taskId}"}}) {
+          id,
+          task {
+            id
+          }
+        }
+      }
+    }`;
+    const result = await graphql(schema, mutation);
+    validateResult(result);
+    expect(result.data.models.TaskItem[0].id).toEqual(taskItemId);
+    expect(result.data.models.TaskItem[0].task.id).toEqual(taskId);
+  });
   it("create - hook variables {rootValue}", async() => {
     const taskModel = {
       name: "Task",
