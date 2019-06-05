@@ -293,7 +293,17 @@ export default class GQLManager {
       }
       return o;
     }, {});
-    const {getOptions, countOptions} = await adapter.processListArgsToOptions(defName, a, info, definition.whereOperators, createGetGraphQLArgsFunc(context, info, source));
+
+    let offset;
+    if (args.after) {
+      offset = args.after.index + 1;
+    } else if (args.before) {
+      offset = args.before.index + 1;
+      if (args.limit) {
+        offset -= Number(args.limit);
+      }
+    }
+    const {getOptions, countOptions} = await adapter.processListArgsToOptions(defName, a, offset, info, definition.whereOperators, createGetGraphQLArgsFunc(context, info, source));
     const models = await source[relationship.accessors.get](getOptions);
     let total;
     if (adapter.hasInlineCountFeature()) {
@@ -336,7 +346,16 @@ export default class GQLManager {
         selectedFields = getSelectionFields(info.fieldNodes[0]);
       }
     }
-    const {getOptions, countOptions} = await adapter.processListArgsToOptions(defName, a, info, definition.whereOperators, createGetGraphQLArgsFunc(context, info, source), selectedFields);
+    let offset;
+    if (args.after) {
+      offset = args.after.index + 1;
+    } else if (args.before) {
+      offset = args.before.index + 1;
+      if (args.limit) {
+        offset -= Number(args.limit);
+      }
+    }
+    const {getOptions, countOptions} = await adapter.processListArgsToOptions(defName, a, offset, info, definition.whereOperators, createGetGraphQLArgsFunc(context, info, source), selectedFields);
     if (definition.before) {
       await definition.before({
         params: getOptions, args, context, info,

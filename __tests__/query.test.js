@@ -1,6 +1,7 @@
 import {graphql} from "graphql";
 import {createInstance, validateResult} from "./helper";
 import {createSchema} from "../src/graphql/index";
+import waterfall from "../src/utils/waterfall";
 
 describe("queries", () => {
   it("basic", async() => {
@@ -437,4 +438,55 @@ it("where operators - chained", async() => {
   expect(result.data.models.Task.edges[0].node.name).toEqual("task2");
   expect(result.data.models.Task.edges[0].node.items.edges).toHaveLength(0);
 });
+it("paging asc", async() => {
+  const instance = await createInstance();
+  const {Task, TaskItem} = instance.models;
+  const model = await Task.create({
+    name: "task1",
+  });
+  await waterfall([{
+    name: "taskitem1",
+    taskId: model.get("id"),
+  }, {
+    name: "taskitem2",
+    taskId: model.get("id"),
+  }, {
+    name: "taskitem3",
+    taskId: model.get("id"),
+  }], (item) => TaskItem.create(item));
 
+  const schema = await createSchema(instance);
+  const result = await graphql(schema, `query {
+  models {
+    TaskItem {
+      edges {
+        cursor
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+}`);
+  validateResult(result);
+  const firstItem = result.data.models.TaskItem.edges[0];
+  const target = result.data.models.TaskItem.edges[1];
+  expect(firstItem.node.name).toEqual("taskitem1");
+  expect(target.node.name).toEqual("taskitem2");
+  const queryResult = await graphql(schema, `query {
+  models {
+    TaskItem(first: 1, after: "${firstItem.cursor}") {
+      edges {
+        cursor
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+}`);
+  const pageTarget = queryResult.data.models.TaskItem.edges[0];
+  expect(pageTarget.node.name).toEqual("taskitem2");
+});
