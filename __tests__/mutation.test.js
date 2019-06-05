@@ -89,6 +89,88 @@ describe("mutations", () => {
     expect(queryResult.data.models.Task.edges[0].node.options.hidden).toEqual("nowhere");
     return expect(queryResult.data.models.Task.edges[0].node.options.hidden2).toEqual("nowhere2");
   });
+  it("update - set null", async() => {
+    const instance = await createInstance();
+    const schema = await createSchema(instance);
+    const createMutation = `mutation {
+      models {
+        Task(create: {name: "item1", nullCheck: "not null"}) {
+          id, 
+          name
+        }
+      }
+    }`;
+    const createMutationResult = await graphql(schema, createMutation);
+    validateResult(createMutationResult);
+    const id = createMutationResult.data.models.Task[0].id;
+
+    const updateMutation = `mutation {
+      models {
+        Task(update: {where: {id: "${id}"}, input: {nullCheck: null}}) {
+          id, 
+          name
+        }
+      }
+    }`;
+    const updateMutationResult = await graphql(schema, updateMutation);
+    validateResult(updateMutationResult);
+
+    const queryResult = await graphql(schema, `query {
+  models {
+    Task {
+      edges {
+        node {
+          id,
+          nullCheck
+        }
+      }
+    }
+  }
+}`);
+    validateResult(queryResult);
+    expect(queryResult.data.models.Task.edges[0].node.nullCheck).toEqual(null);
+  });
+  it("update - set 0", async() => {
+    const instance = await createInstance();
+    const schema = await createSchema(instance);
+    const createMutation = `mutation {
+      models {
+        Task(create: {name: "item1", intZeroCheck: 1}) {
+          id, 
+          name
+        }
+      }
+    }`;
+    const createMutationResult = await graphql(schema, createMutation);
+    validateResult(createMutationResult);
+    const id = createMutationResult.data.models.Task[0].id;
+
+    const updateMutation = `mutation {
+      models {
+        Task(update: {where: {id: "${id}"}, input: {intZeroCheck: 0}}) {
+          id, 
+          name
+        }
+      }
+    }`;
+    const updateMutationResult = await graphql(schema, updateMutation);
+    validateResult(updateMutationResult);
+
+    const queryResult = await graphql(schema, `query {
+  models {
+    Task {
+      edges {
+        node {
+          id,
+          intZeroCheck
+        }
+      }
+    }
+  }
+}`);
+    validateResult(queryResult);
+    return expect(queryResult.data.models.Task.edges[0].node.intZeroCheck).toEqual(0);
+  });
   it("update", async() => {
     const instance = await createInstance();
     const {Task} = instance.models;

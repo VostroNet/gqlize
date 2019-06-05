@@ -34,6 +34,14 @@ export default {
         },
       },
     },
+    nullCheck: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    intZeroCheck: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
     mutationCheck: {
       type: Sequelize.STRING,
       allowNull: true,

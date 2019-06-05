@@ -372,7 +372,7 @@ export default class GQLManager {
   processInputs = async(defName, input, source, args, context, info, model) => {
     const definition = this.getDefinition(defName);
     let i = Object.keys(this.getFields(defName)).reduce((o, key) => {
-      if (input[key]) {
+      if (input[key] !== undefined) {
         o[key] = input[key];
       }
       return o;
