@@ -62,6 +62,7 @@ Functional
 - reimplement subscriptions
 - before, after event hooks
 - Implement cross adapter relationships
+- add middleware options to allow for caching of items?
 
 Unit Tests
 - test add/remove from relationships

@@ -2,7 +2,7 @@ import waterfall from "./utils/waterfall";
 import Cache from "./utils/cache";
 import pluralize from "pluralize";
 import replaceIdDeep from "./utils/replace-id-deep";
-import { capitalize } from "./utils/word";
+import {capitalize} from "./utils/word";
 import events from "./events";
 
 const hookList = [
@@ -10,18 +10,48 @@ const hookList = [
   "afterValidate",
   "validationFailed",
   "beforeCreate",
-  "beforeDestroy",
-  "beforeUpdate",
-  "beforeSave",
-  "beforeUpsert",
   "afterCreate",
+  "beforeDestroy",
   "afterDestroy",
+  "beforeRestore",
+  "afterRestore",
+  "beforeUpdate",
   "afterUpdate",
+  "beforeSave",
   "afterSave",
+  "beforeUpsert",
   "afterUpsert",
+  "beforeBulkCreate",
+  "afterBulkCreate",
+  "beforeBulkDestroy",
+  "afterBulkDestroy",
+  "beforeBulkRestore",
+  "afterBulkRestore",
+  "beforeBulkUpdate",
+  "afterBulkUpdate",
+  "beforeFind",
+  "beforeFindAfterExpandIncludeAll",
+  "beforeFindAfterOptions",
+  "afterFind",
+  "beforeCount",
+  "beforeDefine",
+  "afterDefine",
+  "beforeInit",
+  "afterInit",
+  "beforeAssociate",
+  "afterAssociate",
+  "beforeConnect",
+  "afterConnect",
+  "beforeSync",
+  "afterSync",
+  "beforeBulkSync",
+  "afterBulkSync",
+  "beforeQuery",
+  "afterQuery",
 ];
+
 export default class GQLManager {
-  constructor(options) {
+  constructor(options = {}) {
     this.defs = {};
     this.defsAdapters = {};
     this.adapters = {};
@@ -31,7 +61,7 @@ export default class GQLManager {
     this.hooks = {};
     this.hookmap = {};
     this.globalHooks = hookList.reduce((o, hookName) => {
-      o[hookName] = [];
+      o[hookName] = (options.globalHooks || {})[hookName] || [];
       return o;
     }, {});
     // this.reference = {};
@@ -41,11 +71,30 @@ export default class GQLManager {
   addHook = (hookName, hook) => {
     this.globalHooks[hookName].push(hook);
   }
+  addHookObject = (hooks) => {
+    return Object.keys(hooks).forEach((h) => {
+      const hook = hooks[h];
+      return this.addHook(h, hook);
+    });
+  }
+  unshiftHook = (hookName, hook) => {
+    this.globalHooks[hookName].unshift(hook);
+  }
+  unshiftHookObject = (hooks) => {
+    return Object.keys(hooks).forEach((h) => {
+      const hook = hooks[h];
+      return this.unshiftHook(h, hook);
+    });
+  }
   registerAdapter = (adapter, adapterName = "default") => {
     this.adapters[adapterName || adapter.name] = adapter;
     if (!this.defaultAdapter) {
       this.defaultAdapter = adapterName || adapter.name;
     }
+  }
+  getDefinitionHooks = async(defName) => {
+    const def = this.getDefinition(defName);
+    return def.hooks || ((def.options || {}).hooks || {});
   }
   addDefinition = async(def, datasource) => {
     if (!datasource) {
@@ -57,37 +106,45 @@ export default class GQLManager {
     this.defs[def.name] = def;
     this.defsAdapters[def.name] = datasource;
     const adapter = this.adapters[datasource];
-    this.hookmap[def.name] = this.generateHookMap(def.name);
-    this.hooks[def.name] = [hookList.reduce((o, hookName) => {
-      o[hookName] = (first, ...args) => {
-        if (this.globalHooks[hookName].length > 0) {
-          return waterfall(this.globalHooks[hookName], (hook, f) => {
-            return hook(f, ...args);
-          }, first);
-        }
-        return first;
-      };
-      return o;
-    }, {})];
+    // this.hookmap[def.name] = this.generateHookMap(def.name);
 
-    this.models[def.name] = await adapter.createModel(def, this.hookmap[def.name]);
-  }
-  generateHookMap = (defName, ...hooks) => {
-    return hookList.reduce((o, hookName) => {
-      o[hookName] = (first, ...args) => {
-        return waterfall(this.hooks[defName], (hooks, e) => {
-          if (hooks) {
-            if (hooks[hookName]) {
-              return hooks[hookName](e, ...args);
-            }
-          }
-          return e;
-        }, first);
-      };
+    this.hooks[def.name] = hookList.reduce((o, hookName) => {
+      o[hookName] = this.createHook(hookName, def);
       return o;
     }, {});
+
+    this.models[def.name] = await adapter.createModel(def, this.hooks[def.name]);
   }
 
+  createHook(hookName, def) {
+    return async(first, ...args) => {
+      const hooks = await this.getDefinitionHooks(def.name);
+      let v = first;
+      if (hooks[hookName]) {
+        if (hooks[hookName] instanceof Function) {
+          v = await hooks[hookName](v, ...args);
+        } else if (Array.isArray(hooks[hookName])) {
+          if (hooks[hookName].length > 0) {
+            v = await waterfall(hooks[hookName], async(hook, f) => {
+              return hook(f, ...args);
+            }, v);
+          }
+        }
+      }
+      if (this.globalHooks[hookName]) {
+        if (this.globalHooks[hookName] instanceof Function) {
+          v = await this.globalHooks[hookName](def.name, v, ...args);
+        } else if (Array.isArray(this.globalHooks[hookName])) {
+          if (this.globalHooks[hookName].length > 0) {
+            v = await waterfall(this.globalHooks[hookName], async(hook, f) => {
+              return hook(def.name, f, ...args);
+            }, v);
+          }
+        }
+      }
+      return v;
+    };
+  }
   getModel = (modelName) => {
     return this.getModelAdapter(modelName).getModel(modelName);
   }
@@ -132,7 +189,7 @@ export default class GQLManager {
     if (!this.relationships[def.name]) {
       this.relationships[def.name] = {};
     }
-    if(this.relationships[def.name][rel.name]) {
+    if (this.relationships[def.name][rel.name]) {
       throw new Error(`Unable to continue duplicate relationships: ${def.name} - ${rel.name}`);
     }
     this.relationships[def.name][rel.name] = {
@@ -193,7 +250,7 @@ export default class GQLManager {
     };
   }
   getValueFromInstance = (defName, data, keyName) => {
-    if(!data) {
+    if (!data) {
       return undefined;
     }
     const adapter = this.getModelAdapter(defName);
@@ -256,7 +313,7 @@ export default class GQLManager {
           info,
           source,
         };
-      }
+      },
     });
   }
   resolveFindAll = async(defName, source, args, context, info) => {
@@ -275,7 +332,7 @@ export default class GQLManager {
     }, {});
     let selectedFields = [];
     if (info) {
-      if(Array.isArray(info.fieldNodes)) {
+      if (Array.isArray(info.fieldNodes)) {
         selectedFields = getSelectionFields(info.fieldNodes[0]);
       }
     }
@@ -294,7 +351,7 @@ export default class GQLManager {
         result: m, args, context, info,
         modelDefinition: definition,
         type: events.QUERY,
-      })).filter((m) => ( m !== undefined && m !== null )));
+      })).filter((m) => (m !== undefined && m !== null)));
     }
     let total;
     if (adapter.hasInlineCountFeature()) {
@@ -553,7 +610,7 @@ function createGetGraphQLArgsFunc(context, info, source, options = {}) {
         info,
         source,
       };
-    }
+    },
   }, options);
 }
 

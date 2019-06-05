@@ -26,7 +26,7 @@
     "@babel/preset-env": "^7.4.4",
     "@babel/register": "^7.4.4",
     "@types/jest": "^24.0.13",
-    "@vostro/gqlize-adapter-sequelize": "4.0.0-alpha2",
+    "@vostro/gqlize-adapter-sequelize": "4.0.0-alpha4",
     "@vostro/graphql-types": "1.0.0",
     "apollo-server-express": "^2.5.0",
     "babel-eslint": "^10.0.1",
