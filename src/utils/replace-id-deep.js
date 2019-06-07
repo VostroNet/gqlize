@@ -30,6 +30,9 @@ function checkObject(value, keyMap, variableValues, isTagged) {
 }
 
 export default function replaceIdDeep(obj, keyMap, variableValues, isTagged = false) {
+  if (obj instanceof Function) {
+    obj = obj(variableValues);
+  }
   return getProperties(obj).reduce((m, key) => {
     if (keyMap.indexOf(key) > -1 || isTagged) {
       m[key] = checkObject(obj[key], keyMap, variableValues, true);

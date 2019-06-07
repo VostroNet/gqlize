@@ -225,6 +225,55 @@ describe("mutations", () => {
     validateResult(queryResult);
     return expect(queryResult.data.models.Task.edges).toHaveLength(0);
   });
+
+  it("delete - single", async() => {
+    const instance = await createInstance();
+    const {Task} = instance.models;
+    const items = await Promise.all([
+      Task.create({
+        name: "item1",
+      }),
+      Task.create({
+        name: "item2",
+      }),
+      Task.create({
+        name: "item3",
+      }),
+    ]);
+    const schema = await createSchema(instance);
+    const itemId = toGlobalId("Task", items[0].id);
+    const variableValues = {
+      where: {
+        id: itemId,
+      },
+    };
+    const mutation = `mutation ($where: GQLTJson){
+      models {
+        Task(delete: {where: $where}) {
+          id
+        }
+      }
+    }`;
+    const result = await graphql(schema, mutation, {}, {}, variableValues);
+    validateResult(result);
+    expect(result.data.models.Task[0].id).toEqual(itemId);
+    const query = `query {
+      models {
+        Task {
+          edges {
+            node {
+              id,
+              name
+            }
+          }
+        }
+      }
+    }`;
+    const queryResult = await graphql(schema, query);
+    validateResult(queryResult);
+    return expect(queryResult.data.models.Task.edges).toHaveLength(2);
+  });
+
   it("update - multiple", async() => {
     const instance = await createInstance();
     const {Task} = instance.models;
