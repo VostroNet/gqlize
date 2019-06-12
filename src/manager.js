@@ -445,7 +445,7 @@ export default class GQLManager {
             // const [result] = await this.processUpdate(targetName, source, {input: arg}, context, info);
             const targets = await source[relationship.accessors.get](Object.assign({
               limit,
-              where: await targetAdapter.processFilterArgument(replaceIdDeep(where, targetGlobalKeys, info.variableValues), targetDef.whereOperators),
+              where: await targetAdapter.processFilterArgument(arg, targetDef.whereOperators),
             }, defaultOptions));
             let i = await this.processInputs(targetName, input, source, args, context, info);
             if (targetDef.before) {
@@ -472,7 +472,7 @@ export default class GQLManager {
         if (args.delete) {
           await waterfall(args.delete, async(arg) => {
             const targets = await source[relationship.accessors.get](Object.assign({
-              where: await targetAdapter.processFilterArgument(replaceIdDeep(arg, targetGlobalKeys, info.variableValues), targetDef.whereOperators),
+              where: await targetAdapter.processFilterArgument(arg, targetDef.whereOperators),
             }, defaultOptions));
             // let i = await this.processInputs(targetName, input, source, args, context, info);
             await Promise.all(targets.map(async(model) => {
@@ -498,7 +498,7 @@ export default class GQLManager {
         }
         if (args.add) {
           await waterfall(args.add, async(arg) => {
-            const where = await targetAdapter.processFilterArgument(replaceIdDeep(arg, targetGlobalKeys, info.variableValues), targetDef.whereOperators);
+            const where = await targetAdapter.processFilterArgument(arg, targetDef.whereOperators);
             const results = await targetAdapter.findAll(targetName, Object.assign({
               where,
             }, defaultOptions));
@@ -511,7 +511,7 @@ export default class GQLManager {
 
         if (args.remove) {
           await waterfall(args.remove, async(arg) => {
-            const where = await targetAdapter.processFilterArgument(replaceIdDeep(arg, targetGlobalKeys, info.variableValues), targetDef.whereOperators);
+            const where = await targetAdapter.processFilterArgument(arg, targetDef.whereOperators);
             const results = await targetAdapter.findAll(targetName, Object.assign({
               where,
             }, defaultOptions));

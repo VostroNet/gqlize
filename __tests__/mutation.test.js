@@ -923,3 +923,118 @@ describe("mutations", () => {
     expect(queryResults.data.models.Task.edges[0].node.items.edges).toHaveLength(1);
   });
 });
+
+test("add multiple ids", async() => {
+  const db = new Database();
+  const sqlite = new SequelizeAdapter({}, {
+    dialect: "sqlite",
+  });
+  db.registerAdapter(sqlite, "sqlite");
+  const parentDef = {
+    name: "Parent",
+    define: {
+      name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+    },
+    relationships: [{
+      type: "hasMany",
+      model: "Child",
+      name: "children",
+      options: {
+        as: "children",
+        foreignKey: "parentId",
+      },
+    }],
+  };
+
+  const childDef = {
+    name: "Child",
+    define: {
+      name: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+    },
+    relationships: [
+      {
+        type: "belongsTo",
+        model: "Parent",
+        name: "parent",
+        options: {
+          foreignKey: "parentId",
+        },
+      },
+    ],
+  };
+  await db.addDefinition(parentDef, "sqlite");
+  await db.addDefinition(childDef, "sqlite");
+  await db.initialise();
+  // const ParentModel = db.getModel("Parent");
+  const ChildModel = db.getModel("Child");
+
+  const children = await Promise.all([
+    ChildModel.create({
+      name: "child1",
+    }),
+    ChildModel.create({
+      name: "child2",
+    }),
+  ]);
+
+  const schema = await createSchema(db);
+
+  const childIds = children.map(({id}) => toGlobalId("Child", id));
+  const variableValues = {childIds};
+  const mutation = `mutation($childIds: [ID]) {
+    models {
+      Parent(create: {
+        name: "parent3",
+        children: {
+          add: {id: {in: $childIds}}
+        }
+      }) {
+        id
+        name
+        children {
+          edges {
+            node {
+              parentId
+            }
+          }
+        }
+      }
+    }
+  }`;
+  const res = await graphql(schema, mutation, undefined, undefined, variableValues);
+
+  expect(res.data.models.Parent[0].children.edges).toHaveLength(2);
+
+  const query = `
+    query {
+      models {
+        Parent(where: {
+          name: "parent3"
+        }) {
+          edges {
+            node {
+              id
+              name
+              children {
+                edges {
+                  node {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+  const queryResult = await graphql(schema, query);
+  validateResult(queryResult);
+  expect(queryResult.data.models.Parent.edges[0].node.children.edges).toHaveLength(2);
+});
