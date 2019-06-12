@@ -445,7 +445,7 @@ export default class GQLManager {
             // const [result] = await this.processUpdate(targetName, source, {input: arg}, context, info);
             const targets = await source[relationship.accessors.get](Object.assign({
               limit,
-              where: await targetAdapter.processFilterArgument(arg, targetDef.whereOperators),
+              where: await targetAdapter.processFilterArgument(replaceIdDeep(where, targetGlobalKeys, info.variableValues), targetDef.whereOperators),
             }, defaultOptions));
             let i = await this.processInputs(targetName, input, source, args, context, info);
             if (targetDef.before) {
@@ -472,7 +472,7 @@ export default class GQLManager {
         if (args.delete) {
           await waterfall(args.delete, async(arg) => {
             const targets = await source[relationship.accessors.get](Object.assign({
-              where: await targetAdapter.processFilterArgument(arg, targetDef.whereOperators),
+              where: await targetAdapter.processFilterArgument(replaceIdDeep(arg, targetGlobalKeys, info.variableValues), targetDef.whereOperators),
             }, defaultOptions));
             // let i = await this.processInputs(targetName, input, source, args, context, info);
             await Promise.all(targets.map(async(model) => {
@@ -496,27 +496,27 @@ export default class GQLManager {
             }));
           });
         }
-        if (args.add) {
-          await waterfall(args.add, async(arg) => {
-            const where = await targetAdapter.processFilterArgument(arg, targetDef.whereOperators);
-            const results = await targetAdapter.findAll(targetName, Object.assign({
-              where,
-            }, defaultOptions));
-            if (results.length > 0) {
-              return source[relationship.accessors.addMultiple](results, defaultOptions);
-            }
-            return undefined;
-          });
-        }
-
         if (args.remove) {
           await waterfall(args.remove, async(arg) => {
-            const where = await targetAdapter.processFilterArgument(arg, targetDef.whereOperators);
+            const where = await targetAdapter.processFilterArgument(replaceIdDeep(arg, targetGlobalKeys, info.variableValues), targetDef.whereOperators);
             const results = await targetAdapter.findAll(targetName, Object.assign({
               where,
             }, defaultOptions));
             if (results.length > 0) {
               return source[relationship.accessors.removeMultiple](results, defaultOptions);
+            }
+            return undefined;
+          });
+        }
+
+        if (args.add) {
+          await waterfall(args.add, async(arg) => {
+            const where = await targetAdapter.processFilterArgument(replaceIdDeep(arg, targetGlobalKeys, info.variableValues), targetDef.whereOperators);
+            const results = await targetAdapter.findAll(targetName, Object.assign({
+              where,
+            }, defaultOptions));
+            if (results.length > 0) {
+              return source[relationship.accessors.addMultiple](results, defaultOptions);
             }
             return undefined;
           });
@@ -530,7 +530,8 @@ export default class GQLManager {
     const definition = this.getDefinition(defName);
     const processCreate = adapter.getCreateFunction(defName);
     const globalKeys = this.getGlobalKeys(defName);
-    let input = replaceIdDeep(args.input, globalKeys, info.variableValues);
+    let i = await this.processInputs(defName, args.input, source, args, context, info);
+    let input = replaceIdDeep(i, globalKeys, info.variableValues);
     if (definition.before) {
       input = await definition.before({
         params: input, args, context, info,
@@ -538,10 +539,9 @@ export default class GQLManager {
         type: events.MUTATION_CREATE,
       });
     }
-    let i = await this.processInputs(defName, input, source, args, context, info);
     let result;
-    if (Object.keys(i).length > 0) {
-      result = await processCreate(i, createGetGraphQLArgsFunc(context, info, source));
+    if (Object.keys(input).length > 0) {
+      result = await processCreate(input, createGetGraphQLArgsFunc(context, info, source));
       if (definition.after) {
         result = definition.after({
           result, args, context, info,
@@ -551,7 +551,7 @@ export default class GQLManager {
       }
 
       if (result !== undefined && result !== null) {
-        result = await this.processRelationshipMutation(defName, result, input, context, info);
+        result = await this.processRelationshipMutation(defName, result, args.input, context, info);
         return [result];
       }
 

@@ -986,7 +986,7 @@ test("add multiple ids", async() => {
   const schema = await createSchema(db);
 
   const childIds = children.map(({id}) => toGlobalId("Child", id));
-  const variableValues = {childIds};
+  let variableValues = {childIds};
   const mutation = `mutation($childIds: [ID]) {
     models {
       Parent(create: {
@@ -1037,4 +1037,39 @@ test("add multiple ids", async() => {
   const queryResult = await graphql(schema, query);
   validateResult(queryResult);
   expect(queryResult.data.models.Parent.edges[0].node.children.edges).toHaveLength(2);
+
+  const newChild = await ChildModel.create({
+    name: "child3",
+  });
+
+  const mutation2 = `
+    mutation($childIds: [ID]) {
+      models {
+        Parent(update: {
+          where: {id: "${queryResult.data.models.Parent.edges[0].node.id}"}
+          input: {
+            name: "haha"
+            children: {
+              remove: {},
+              add: {id: {in: $childIds}}
+            }
+          }
+        }) {
+          id
+          children {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+  variableValues = {childIds: [toGlobalId("Child", newChild.id)]};
+
+  const res2 = await graphql(schema, mutation2, undefined, undefined, variableValues);
+  expect(res2.data.models.Parent[0].children.edges).toHaveLength(1);
 });
