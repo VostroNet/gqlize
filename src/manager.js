@@ -1,4 +1,5 @@
 import waterfall from "./utils/waterfall";
+import {fromGlobalId} from "graphql-relay";
 import Cache from "./utils/cache";
 import pluralize from "pluralize";
 import replaceIdDeep from "./utils/replace-id-deep";
@@ -564,7 +565,19 @@ export default class GQLManager {
     const adapter = this.getModelAdapter(defName);
     const processUpdate = adapter.getUpdateFunction(defName, definition.whereOperators);
     const globalKeys = this.getGlobalKeys(defName);
-    let i = replaceIdDeep(args.input, globalKeys, info.variableValues);
+
+    let i = Object.keys(args.input).reduce((o, k) => {
+      if (globalKeys.indexOf(k) > -1) {
+        let v = args.input[k];
+        if (typeof args.input[k] === "function") {
+          v = args.input[k](info.variableValues);
+        }
+        o[k] = fromGlobalId(v).id;
+      } else {
+        o[k] = args.input[k];
+      }
+      return o;
+    }, {});
     const where = replaceIdDeep(args.where, globalKeys, info.variableValues);
     if (definition.before) {
       i = await definition.before({
