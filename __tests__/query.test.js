@@ -490,3 +490,57 @@ it("paging asc", async() => {
   const pageTarget = queryResult.data.models.TaskItem.edges[0];
   expect(pageTarget.node.name).toEqual("taskitem2");
 });
+
+it("Child to Parent", async() => {
+  const instance = await createInstance();
+  const { Parent, Child } = instance.models;
+
+  const child = await Child.create({
+    name: "child1",
+  });
+  const schema = await createSchema(instance);
+
+  const mutation = `mutation {
+    models {
+      Parent(create: {
+        name: "parent1",
+        children: {
+          add: {id: {in: [${child.id}]}}
+        }
+      }) {
+        id
+        name
+        children {
+          edges {
+            node {
+              parentId
+            }
+          }
+        }
+      }
+    }
+  }`;
+  const res = await graphql(schema, mutation);
+  expect(res.data.models.Parent).toHaveLength(1);
+
+  const query = `
+    query {
+      models {
+        Child {
+          edges {
+            node {
+              name
+              parent {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  const queryResult = await graphql(schema, query);
+  expect(queryResult.data.models.Child.edges[0].node.parent).not.toBeNull();
+});
