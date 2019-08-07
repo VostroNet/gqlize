@@ -3,6 +3,7 @@ import {createInstance, validateResult} from "./helper";
 import {createSchema} from "../src/graphql/index";
 import waterfall from "../src/utils/waterfall";
 
+import {toGlobalId} from "graphql-relay";
 describe("queries", () => {
   it("basic", async() => {
     const instance = await createInstance();
@@ -271,7 +272,7 @@ describe("queries", () => {
     const queryResult = await graphql(schema, `query {
       models {
         Item(where: {
-          name: "item1"
+          name: {eq:"item1"}
         }) {
           edges {
             node {
@@ -279,7 +280,6 @@ describe("queries", () => {
               name
               parentId
               children {
-                
                 edges {
                   node {
                     id
@@ -325,7 +325,7 @@ describe("queries", () => {
     const queryResult = await graphql(schema, `query {
       models {
         Item(where: {
-          name: "item"
+          name: {eq:"item"}
         }) {
           edges {
             node {
@@ -505,7 +505,7 @@ it("Child to Parent", async() => {
       Parent(create: {
         name: "parent1",
         children: {
-          add: {id: {in: [${child.id}]}}
+          add: {id: {in: ["${toGlobalId("Child", child.id)}"]}}
         }
       }) {
         id

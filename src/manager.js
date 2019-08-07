@@ -274,11 +274,13 @@ export default class GQLManager {
   }
   getDefaultListArgs = (defName) => {
     const adapter = this.getModelAdapter(defName);
-    return adapter.getDefaultListArgs();
+    const definition = this.getDefinition(defName);
+    return adapter.getDefaultListArgs(defName, definition);
   }
   getFilterGraphQLType = (defName) => {
     const adapter = this.getModelAdapter(defName);
-    return adapter.getFilterGraphQLType();
+    const definition = this.getDefinition(defName);
+    return adapter.getFilterGraphQLType(defName, definition);
   }
   resolveManyRelationship = async(defName, relationship, source, args, context, info) => {
     const adapter = this.getModelAdapter(defName);
@@ -608,7 +610,7 @@ export default class GQLManager {
     const adapter = this.getModelAdapter(defName);
     const processDelete = adapter.getDeleteFunction(defName, definition.whereOperators);
     const globalKeys = this.getGlobalKeys(defName);
-    const where = replaceIdDeep(args.where, globalKeys, info.variableValues);
+    const where = replaceIdDeep(args, globalKeys, info.variableValues);
     const before = (model) => {
       if (!definition.before) {
         return model;

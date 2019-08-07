@@ -375,7 +375,7 @@ describe("relay", () => {
 
     const queryResult = await graphql(schema, `query {
       models {
-        Item(where:{name:"item1"}) {
+        Item(where:{name:{eq:"item1"}}) {
           edges {
             node {
               id

@@ -3,7 +3,7 @@ import Sequelize, {Op} from "sequelize";
 import {
   GraphQLString,
   GraphQLNonNull,
-  // GraphQLBoolean,
+  GraphQLBoolean,
   GraphQLInputObjectType,
   GraphQLObjectType,
   GraphQLInt,
@@ -141,6 +141,10 @@ export default {
         hasNoItems: true
       };
     }
+  },
+  whereOperatorTypes: {
+    hasNoItems: GraphQLBoolean,
+    chainTest: GraphQLBoolean,
   },
   expose: {
     instanceMethods: {

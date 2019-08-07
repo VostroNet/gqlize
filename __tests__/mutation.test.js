@@ -71,7 +71,7 @@ describe("mutations", () => {
 
     const updateMutation = `mutation {
       models {
-        Task(update: {where: {id: "${id}"}, input: {options: {hidden2: "nowhere2"}}}) {
+        Task(update: {where: {id: {eq: "${id}"}}, input: {options: {hidden2: "nowhere2"}}}) {
           id, 
           name
           options {
@@ -106,7 +106,7 @@ describe("mutations", () => {
 
     const updateMutation = `mutation {
       models {
-        Task(update: {where: {id: "${id}"}, input: {nullCheck: null}}) {
+        Task(update: {where: {id: {eq: "${id}"}}, input: {nullCheck: null}}) {
           id, 
           name
         }
@@ -147,7 +147,7 @@ describe("mutations", () => {
 
     const updateMutation = `mutation {
       models {
-        Task(update: {where: {id: "${id}"}, input: {intZeroCheck: 0}}) {
+        Task(update: {where: {id: {eq: "${id}"}}, input: {intZeroCheck: 0}}) {
           id, 
           name
         }
@@ -180,7 +180,7 @@ describe("mutations", () => {
     const schema = await createSchema(instance);
     const mutation = `mutation {
       models {
-        Task(update: {where: {id: "${toGlobalId("Task", item.id)}"}, input: {name: "UPDATED"}}) {
+        Task(update: {where: {id: {eq: "${toGlobalId("Task", item.id)}"}}, input: {name: "UPDATED"}}) {
           id, 
           name
         }
@@ -201,7 +201,7 @@ describe("mutations", () => {
     const itemId = toGlobalId("Task", item.id);
     const mutation = `mutation {
       models {
-        Task(delete: {where: {id: "${itemId}"}}) {
+        Task(delete: {id: {eq: "${itemId}"} }) {
           id
         }
       }
@@ -211,7 +211,7 @@ describe("mutations", () => {
     expect(result.data.models.Task[0].id).toEqual(itemId);
     const query = `query {
       models {
-        Task(where: {id: "${itemId}"}) {
+        Task(where: {id: {eq: "${itemId}"}}) {
           edges {
             node {
               id,
@@ -244,12 +244,14 @@ describe("mutations", () => {
     const itemId = toGlobalId("Task", items[0].id);
     const variableValues = {
       where: {
-        id: itemId,
+        id: {
+          eq: itemId,
+        },
       },
     };
-    const mutation = `mutation ($where: GQLTJson){
+    const mutation = `mutation ($where: [GQLTQueryTaskWhere]){
       models {
-        Task(delete: {where: $where}) {
+        Task(delete: $where) {
           id
         }
       }
@@ -308,7 +310,7 @@ describe("mutations", () => {
     validateResult(mutationResult);
     const item2Result = await graphql(schema, `{
       models {
-        Task(where: {id: "${item2Id}"}) {
+        Task(where: {id: {eq:"${item2Id}"}}) {
           edges {
             node {
               id
@@ -321,7 +323,7 @@ describe("mutations", () => {
     validateResult(item2Result);
     const item3Result = await graphql(schema, `{
       models {
-        Task(where: {id: "${item3Id}"}) {
+        Task(where: {id: {eq:"${item3Id}"}}) {
           edges {
             node {
               id
@@ -354,9 +356,7 @@ describe("mutations", () => {
     const mutation = `mutation {
       models {
         Task(delete: {
-          where: {
-            name: {in: ["item2", "item3"]}
-          }
+          name: {in: ["item2", "item3"]}
         }) {
           id
         }
@@ -426,7 +426,7 @@ describe("mutations", () => {
     const itemId = toGlobalId("Task", item.id);
     const mutation = `mutation {
       models {
-        Task(update: {where: {id: "${itemId}"}, input: {name: "UPDATED"}}) {
+        Task(update: {where: {id:{eq:"${itemId}"}}, input: {name: "UPDATED"}}) {
           id, 
           name,
           mutationCheck
@@ -453,7 +453,7 @@ describe("mutations", () => {
     const taskItemId = toGlobalId("TaskItem", task.id);
     const mutation = `mutation {
       models {
-        TaskItem(update: {where: {id: "${taskItemId}"}, input: {taskId: "${taskId}"}}) {
+        TaskItem(update: {where: {id: {eq:"${taskItemId}"}}, input: {taskId: "${taskId}"}}) {
           id,
           task {
             id
@@ -575,7 +575,7 @@ describe("mutations", () => {
     const itemId = toGlobalId("Task", item.id);
     const updateMutation = `mutation {
       models {
-        Task(update: {where: {id: "${itemId}"}, input: {name: "UPDATED"}}) {
+        Task(update: {where: {id: {eq:"${itemId}"}}, input: {name: "UPDATED"}}) {
             id, 
             name
           }
@@ -635,7 +635,7 @@ describe("mutations", () => {
     const schema = await createSchema(db);
     const deleteMutation = `mutation {
       models {
-        Task(delete: {where: {id: "${itemId}"}}) {
+        Task(delete: {id: {eq:"${itemId}"}}) {
           id
         }
       }
@@ -777,7 +777,7 @@ describe("mutations", () => {
       models {
         Task(update: {
           where: {
-            name: "end" 
+            name: {eq:"end"}
           },
           input: {
             items: {
@@ -806,7 +806,7 @@ describe("mutations", () => {
     expect(result.data.models.Task).toHaveLength(1);
     const queryResults = await graphql(schema, `{
       models {
-        Task(where: {name: "start"}) {
+        Task(where: {name: {eq:"start"}}) {
           edges {
             node {
               id
@@ -828,7 +828,7 @@ describe("mutations", () => {
     expect(queryResults.data.models.Task.edges[0].node.items.edges).toHaveLength(1);
     const endQueryResults = await graphql(schema, `{
       models {
-        Task(where: {name: "end"}) {
+        Task(where: {name: {eq:"end"}}) {
           edges {
             node {
               id
@@ -872,7 +872,7 @@ describe("mutations", () => {
       models {
         Task(update: {
           where: {
-            name: "start" 
+            name: {eq:"start"}
           },
           input: {
             items: {
@@ -901,7 +901,7 @@ describe("mutations", () => {
     expect(result.data.models.Task).toHaveLength(1);
     const queryResults = await graphql(schema, `{
       models {
-        Task(where: {name: "start"}) {
+        Task(where: {name:{eq: "start"}}) {
           edges {
             node {
               id
@@ -1015,7 +1015,7 @@ test("add multiple ids", async() => {
     query {
       models {
         Parent(where: {
-          name: "parent3"
+          name: {eq: "parent3"}
         }) {
           edges {
             node {
@@ -1046,7 +1046,7 @@ test("add multiple ids", async() => {
     mutation($childIds: [ID]) {
       models {
         Parent(update: {
-          where: {id: "${queryResult.data.models.Parent.edges[0].node.id}"}
+          where: {id: {eq:"${queryResult.data.models.Parent.edges[0].node.id}"}}
           input: {
             name: "haha"
             children: {
