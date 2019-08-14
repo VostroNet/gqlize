@@ -214,7 +214,7 @@ export default class GQLManager {
     }
     this.relationships[def.name][rel.name].internal = false;
     const modelClass = sourceAdapter.getModel(def.name);
-    const sourcePrimaryKeyName = sourceAdapter.getPrimaryKeyNameForModel(def.name);
+    const sourcePrimaryKeyName = sourceAdapter.getPrimaryKeyNameForModel(def.name)[0]; //TODO: check for edge case with multi primary key table
     let funcName = `get${capitalize(rel.model)}`;
     switch (rel.type) {
       case "hasMany":
