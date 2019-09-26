@@ -92,7 +92,7 @@ export default function createListObject(instance, schemaCache, targetDefName, t
       const a = processDefaultArgs(args);
       let cursor;
       if (args.after || args.before) {
-        cursor = args.after || args.before;
+        cursor = fromCursor(args.after || args.before);
       }
       const { total, models } = await resolveData(source, a, context, info);
       const edges = models.map((row, idx) => {
