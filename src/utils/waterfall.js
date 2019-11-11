@@ -10,3 +10,14 @@ export default function waterfall(arr = [], func, start) {
     });
   }, Promise.resolve(start));
 }
+
+
+
+export function waterfallSync(arr = [], func, start) {
+  if (!Array.isArray(arr)) {
+    arr = [arr];
+  }
+  return arr.reduce(function(prevVal, val) {
+    return func(val, prevVal);
+  }, start);
+}

@@ -190,6 +190,44 @@ describe("permissions", () => {
     expect(func.reverseName2).toBeDefined();
     return expect(func.reverseName).not.toBeDefined();
   });
+
+
+  it("mutation model - update field permissions", async() => {
+    const instance = await createInstance();
+    const schema = await createSchema(instance, {
+      permission: {
+        mutationUpdateInput(modelName, fieldName) {
+          if (modelName === "Task" && fieldName === "options2") {
+            return false;
+          }
+          return true;
+        },
+      },
+    });
+    const {args} = schema.getMutationType().getFields().models.type.getFields().Task;
+    const updateField = args.find((a) => a.name === "update");
+    const updateFieldTypeInputFields = updateField.type.ofType.getFields().input.type.getFields();
+    return expect(updateFieldTypeInputFields.options2).toBeUndefined();
+  });
+
+  it("mutation model - create field permissions", async() => {
+    const instance = await createInstance();
+    const schema = await createSchema(instance, {
+      permission: {
+        mutationCreateInput(modelName, fieldName) {
+          if (modelName === "Task" && fieldName === "options2") {
+            return false;
+          }
+          return true;
+        },
+      },
+    });
+    const {args} = schema.getMutationType().getFields().models.type.getFields().Task;
+    const field = args.find((a) => a.name === "create");
+    const fieldTypeInputFields = field.type.ofType.getFields();
+    return expect(fieldTypeInputFields.options2).toBeUndefined();
+  });
+
   // it("subscription", async() => {
   //   const pubsub = new PubSub();
 

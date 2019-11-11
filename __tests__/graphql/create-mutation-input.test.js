@@ -22,7 +22,7 @@ test("createMutationInput", async() => {
   await db.initialise();
   const inputTypes = {};
   const schemaCache = createSchemaCache();
-  const result = createMutationInput(db, "Item", schemaCache, inputTypes);
+  const result = createMutationInput(db, "Item", schemaCache, inputTypes, {});
   expect(result).toBeDefined();
   expect(result.required).toBeDefined();
   expect(result.optional).toBeDefined();

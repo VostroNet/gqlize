@@ -5,23 +5,37 @@ import {
 
 import createGQLInputObject from "./create-gql-input-object";
 import { capitalize } from "../utils/word";
+import { waterfallSync } from "../utils/waterfall";
 //(instance, defName, fields, relationships, inputTypes, false)
-export function generateInputFields(instance, defName, definition, fields, relationships, inputTypes, schemaCache, forceOptional = false) {
-
-
-  let def = Object.keys(fields).reduce((o, key) => {
-    const field = fields[key];
+export function generateInputFields(instance, defName, definition, defFields, relationships, inputTypes, schemaCache, forceOptional, options) {
+  let def = waterfallSync(Object.keys(defFields), (fieldName, fields) => {
+    let doNotSkip = true;
+    if (options.permission) {
+      if (forceOptional) {
+        if (options.permission.mutationUpdateInput) {
+          doNotSkip = options.permission.mutationUpdateInput(defName, fieldName, options.permission.options);
+        }
+      } else {
+        if (options.permission.mutationCreateInput) {
+          doNotSkip = options.permission.mutationCreateInput(defName, fieldName, options.permission.options);
+        }
+      }
+    }
+    if (!doNotSkip) {
+      return fields;
+    }
+    const field = defFields[fieldName];
     if (definition.override) {
-      const overrideFieldDefinition = definition.override[key];
+      const overrideFieldDefinition = definition.override[fieldName];
 
       if (overrideFieldDefinition) {
         const type = overrideFieldDefinition.inputType || overrideFieldDefinition.type;
         let name = type.name;
         if (!overrideFieldDefinition.inputType) {
-          name = `${type.name}${capitalize(key)}Input`;
+          name = `${type.name}${capitalize(fieldName)}Input`;
         }
         if (forceOptional) {
-          name = `${capitalize(type.name)}Optional${capitalize(key)}`;
+          name = `${capitalize(type.name)}Optional${capitalize(fieldName)}`;
         }
         let inputType;
         if (!(overrideFieldDefinition.type instanceof GraphQLInputObjectType) &&
@@ -33,53 +47,74 @@ export function generateInputFields(instance, defName, definition, fields, relat
         }
 
         if (!field.allowNull && !field.autoPopulated && !forceOptional) {
-          o[key] = {type: new GraphQLNonNull(inputType)};
+          fields[fieldName] = {type: new GraphQLNonNull(inputType)};
         } else {
-          o[key] = {type: inputType};
+          fields[fieldName] = {type: inputType};
         }
       }
     }
-    if (!o[key]) {
-      if (instance.getGlobalKeys(defName).indexOf(key) > -1) {
-        o[key] = {
+    if (!fields[fieldName]) {
+      if (instance.getGlobalKeys(defName).indexOf(fieldName) > -1) {
+        fields[fieldName] = {
           type: GraphQLID,
         };
       } else {
-        const type = instance.getGraphQLInputType(defName, `${key}${forceOptional ? "Optional" : "Required"}`, field.type);
+        const type = instance.getGraphQLInputType(defName, `${fieldName}${forceOptional ? "Optional" : "Required"}`, field.type);
         let t = field.allowNull || field.autoPopulated || forceOptional ? type : new GraphQLNonNull(type);
-        o[key] = {
+        fields[fieldName] = {
           type: t,
         };
       }
     }
-    return o;
+    return fields;
   }, {});
 
-  return Object.keys(relationships).reduce((o, key) => {
-    const relationship = relationships[key];
+  return waterfallSync(Object.keys(relationships), (relName, fields) => {
+    let doNotSkip = true;
+    if (options.permission) {
+      if (forceOptional) {
+        if (options.permission.mutationUpdateInput) {
+          doNotSkip = options.permission.mutationUpdateInput(defName, relName, options.permission.options);
+        }
+      } else {
+        if (options.permission.mutationCreateInput) {
+          doNotSkip = options.permission.mutationCreateInput(defName, relName, options.permission.options);
+        }
+      }
+    }
+    if (!doNotSkip) {
+      return fields;
+    }
+    const relationship = relationships[relName];
     if (!inputTypes[relationship.target]) {
-      return o;
+      return fields;
     }
     const fld = {};
     const filterType = instance.getFilterGraphQLType(relationship.target);
-    const createInput = inputTypes[relationship.target].required;
-    const updateInput = createGQLInputObject(`${defName}${capitalize(key)}Update`, {
-      where: {
-        type: filterType,
-      },
-      input: {
-        type: inputTypes[relationship.target].optional,
-      },
-    }, schemaCache);
+    let updateInput, createInput = inputTypes[relationship.target].required;
+    if (inputTypes[relationship.target].optional) {
+      updateInput = createGQLInputObject(`${defName}${capitalize(relName)}Update`, {
+        where: {
+          type: filterType,
+        },
+        input: {
+          type: inputTypes[relationship.target].optional,
+        },
+      }, schemaCache);
+    }
     switch (relationship.associationType) {
       case "hasMany":
       case "belongsToMany":
-        fld.create = {
-          type: new GraphQLList(createInput),
-        };
-        fld.update = {
-          type: new GraphQLList(updateInput),
-        };
+        if (createInput) {
+          fld.create = {
+            type: new GraphQLList(createInput),
+          };
+        }
+        if (updateInput) {
+          fld.update = {
+            type: new GraphQLList(updateInput),
+          };
+        }
         fld.add = {
           type: new GraphQLList(filterType),
         };
@@ -91,40 +126,57 @@ export function generateInputFields(instance, defName, definition, fields, relat
         };
         break;
       default:
-        fld.create = {
-          type: createInput,
-        };
-
-        fld.update = {
-          type: updateInput,
-        };
+        if (createInput) {
+          fld.create = {
+            type: createInput,
+          };
+        }
+        if (updateInput) {
+          fld.update = {
+            type: updateInput,
+          };
+        }
         fld.delete = {
           type: filterType,
         };
         break;
     }
-    o[key] = {
-      type: createGQLInputObject(`${defName}${capitalize(key)}${capitalize(relationship.associationType)}Input`, fld, schemaCache),
+    fields[relName] = {
+      type: createGQLInputObject(`${defName}${capitalize(relName)}${capitalize(relationship.associationType)}Input`, fld, schemaCache),
     };
-    return o;
+    return fields;
   }, def);
 }
 
-export default function createMutationInput(instance, defName, schemaCache, inputTypes) {
+export default function createMutationInput(instance, defName, schemaCache, inputTypes, options) {
   const fields = instance.getFields(defName);
   const relationships = instance.getRelationships(defName);
   const definition = instance.getDefinition(defName);
-  const required = createGQLInputObject(`${defName}RequiredInput`, function() {
-    return generateInputFields(instance, defName, definition, fields, relationships, inputTypes, schemaCache, false);
-  }, schemaCache);
-  const optional = createGQLInputObject(`${defName}OptionalInput`, function() {
-    return generateInputFields(instance, defName, definition, fields, relationships, inputTypes, schemaCache, true);
-  }, schemaCache);
+  let required, optional;
+  let doNotSkipUpdate = true, doNotSkipCreate = true;
+  if (options.permission) {
+    if (options.permission.mutationUpdate) {
+      doNotSkipUpdate = options.permission.mutationUpdate(defName, options.permission.options);
+    }
+    if (options.permission.mutationCreate) {
+      doNotSkipCreate = options.permission.mutationCreate(defName, options.permission.options);
+    }
+  }
+  if (doNotSkipCreate) {
+    required = createGQLInputObject(`${defName}RequiredInput`, function() {
+      return generateInputFields(instance, defName, definition, fields, relationships, inputTypes, schemaCache, false, options);
+    }, schemaCache);
+  }
+  if (doNotSkipUpdate) {
+    optional = createGQLInputObject(`${defName}OptionalInput`, function() {
+      return generateInputFields(instance, defName, definition, fields, relationships, inputTypes, schemaCache, true, options);
+    }, schemaCache);
+  }
   const filterType = instance.getFilterGraphQLType(defName);
   return {
     required, optional,
-    create: new GraphQLList(required),
-    update: new GraphQLList(createGQLInputObject(`${defName}UpdateInput`, {
+    create: (doNotSkipCreate) ? new GraphQLList(required) : undefined,
+    update: (doNotSkipUpdate) ? new GraphQLList(createGQLInputObject(`${defName}UpdateInput`, {
       where: {
         type: filterType,
       },
@@ -134,7 +186,11 @@ export default function createMutationInput(instance, defName, schemaCache, inpu
       input: {
         type: optional,
       },
-    }, schemaCache)),
+    }, schemaCache)) : undefined,
     delete: new GraphQLList(filterType),
   };
 }
+
+
+
+

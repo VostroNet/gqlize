@@ -136,61 +136,6 @@ test("manager - processRelationship - hasMany - multi adapter", async() => {
 });
 
 
-test("manager - hasMany - multi adapter", async() => {
-  const db = new Database();
-  const sqlite = new SequelizeAdapter({}, {
-    dialect: "sqlite",
-  });
-  const sqlite2 = new SequelizeAdapter({}, {
-    dialect: "sqlite",
-  });
-  db.registerAdapter(sqlite, "sqlite");
-  db.registerAdapter(sqlite2, "sqlite2");
-  const parentDef = {
-    name: "Parent",
-    define: {
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-    },
-    relationships: [{
-      type: "hasMany",
-      model: "Child",
-      name: "children",
-      options: {
-        foreignKey: "parentId",
-      },
-    }],
-  };
-  const childDef = {
-    name: "Child",
-    define: {
-      parentId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-    },
-    relationships: [],
-  };
-  await db.addDefinition(parentDef, "sqlite");
-  await db.addDefinition(childDef, "sqlite2");
-  await db.initialise();
-  const ParentModel = db.getModel("Parent");
-  const ChildModel = db.getModel("Child");
-  const parentModel = await ParentModel.create({
-    name: "parent",
-  });
-  const childModel = await ChildModel.create({
-    parentId: parentModel.id,
-    name: "childModel",
-  });
-  const children = await parentModel.getChildren();
-  expect(children).toHaveLength(1);
-  expect(children[0].name).toEqual(childModel.name);
-});
-
-
 test("manager - processRelationship - belongsTo - single adapter", async() => {
   const db = new Database();
   const sqlite = new SequelizeAdapter({}, {
@@ -307,70 +252,6 @@ test("manager - processRelationship - belongsTo - multi adapter", async() => {
   const test = new ChildModel();
   expect(test.getParent).toBeDefined();
 });
-
-
-
-test("manager - belongsTo - multi adapter", async() => {
-  const db = new Database();
-  const sqlite = new SequelizeAdapter({}, {
-    dialect: "sqlite",
-  });
-  const sqlite2 = new SequelizeAdapter({}, {
-    dialect: "sqlite",
-  });
-  db.registerAdapter(sqlite, "sqlite");
-  db.registerAdapter(sqlite2, "sqlite2");
-  const parentDef = {
-    name: "Parent",
-    define: {
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-    },
-    relationships: [{
-      type: "hasMany",
-      model: "Child",
-      name: "children",
-      options: {
-        foreignKey: "parentId",
-      },
-    }],
-  };
-  const childDef = {
-    name: "Child",
-    define: {
-      parentId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-    },
-    relationships: [{
-      type: "belongsTo",
-      model: "Parent",
-      name: "parent",
-      options: {
-        foreignKey: "parentId",
-      },
-    }],
-  };
-  await db.addDefinition(parentDef, "sqlite");
-  await db.addDefinition(childDef, "sqlite2");
-  await db.initialise();
-  const ParentModel = db.getModel("Parent");
-  const ChildModel = db.getModel("Child");
-  const parentModel = await ParentModel.create({
-    name: "parent",
-  });
-  const childModel = await ChildModel.create({
-    parentId: parentModel.id,
-    name: "childModel",
-  });
-  const parent = await childModel.getParent();
-  expect(Array.isArray(parent)).toEqual(false);
-  expect(parent.name).toEqual(parentModel.name);
-});
-
 
 
 test("manager - resolveManyRelationship - hasMany", async() => {
@@ -693,3 +574,124 @@ test("manager - resolveSingleRelationship - hasOne", async() => {
   expect(model).toBeDefined();
   expect(model.id).toEqual(parent.id);
 });
+
+
+
+//TODO: need to work on cross adapter relations
+// test("manager - belongsTo - multi adapter", async() => {
+//   const db = new Database();
+//   const sqlite = new SequelizeAdapter({}, {
+//     dialect: "sqlite",
+//   });
+//   const sqlite2 = new SequelizeAdapter({}, {
+//     dialect: "sqlite",
+//   });
+//   db.registerAdapter(sqlite, "sqlite");
+//   db.registerAdapter(sqlite2, "sqlite2");
+//   const parentDef = {
+//     name: "Parent",
+//     define: {
+//       name: {
+//         type: Sequelize.STRING,
+//         allowNull: false,
+//       },
+//     },
+//     relationships: [{
+//       type: "hasMany",
+//       model: "Child",
+//       name: "children",
+//       options: {
+//         foreignKey: "parentId",
+//       },
+//     }],
+//   };
+//   const childDef = {
+//     name: "Child",
+//     define: {
+//       parentId: {
+//         type: Sequelize.INTEGER,
+//         allowNull: false,
+//       },
+//     },
+//     relationships: [{
+//       type: "belongsTo",
+//       model: "Parent",
+//       name: "parent",
+//       options: {
+//         foreignKey: "parentId",
+//       },
+//     }],
+//   };
+//   await db.addDefinition(parentDef, "sqlite");
+//   await db.addDefinition(childDef, "sqlite2");
+//   await db.initialise();
+//   const ParentModel = db.getModel("Parent");
+//   const ChildModel = db.getModel("Child");
+//   const parentModel = await ParentModel.create({
+//     name: "parent",
+//   });
+//   const childModel = await ChildModel.create({
+//     parentId: parentModel.id,
+//     name: "childModel",
+//   });
+//   const parent = await childModel.getParent();
+//   expect(Array.isArray(parent)).toEqual(false);
+//   expect(parent.name).toEqual(parentModel.name);
+// });
+
+
+
+// TODO - need to work on cross adapater relations
+// test("manager - hasMany - multi adapter", async() => {
+//   const db = new Database();
+//   const sqlite = new SequelizeAdapter({}, {
+//     dialect: "sqlite",
+//   });
+//   const sqlite2 = new SequelizeAdapter({}, {
+//     dialect: "sqlite",
+//   });
+//   db.registerAdapter(sqlite, "sqlite");
+//   db.registerAdapter(sqlite2, "sqlite2");
+//   const parentDef = {
+//     name: "Parent",
+//     define: {
+//       name: {
+//         type: Sequelize.STRING,
+//         allowNull: false,
+//       },
+//     },
+//     relationships: [{
+//       type: "hasMany",
+//       model: "Child",
+//       name: "children",
+//       options: {
+//         foreignKey: "parentId",
+//       },
+//     }],
+//   };
+//   const childDef = {
+//     name: "Child",
+//     define: {
+//       parentId: {
+//         type: Sequelize.INTEGER,
+//         allowNull: false,
+//       },
+//     },
+//     relationships: [],
+//   };
+//   await db.addDefinition(parentDef, "sqlite");
+//   await db.addDefinition(childDef, "sqlite2");
+//   await db.initialise();
+//   const ParentModel = db.getModel("Parent");
+//   const ChildModel = db.getModel("Child");
+//   const parentModel = await ParentModel.create({
+//     name: "parent",
+//   });
+//   const childModel = await ChildModel.create({
+//     parentId: parentModel.id,
+//     name: "childModel",
+//   });
+//   const children = await parentModel.getChildren();
+//   expect(children).toHaveLength(1);
+//   expect(children[0].name).toEqual(childModel.name);
+// });

@@ -61,19 +61,19 @@ export function createListObjects(instance, schemaCache, options) {
 }
 
 function createMutationInputs(instance, definitions, options, schemaCache) {
-  return async(defName, o) => {
+  return async(defName, inputTypes) => {
     if (schemaCache.types[defName]) {
       if (options.permission) {
         if (options.permission.mutation) {
           const result = await options.permission.mutation(defName, options.permission.options);
           if (!result) {
-            return o;
+            return inputTypes;
           }
         }
       }
-      o[defName] = await createMutationInput(instance, defName, schemaCache, o);
+      inputTypes[defName] = await createMutationInput(instance, defName, schemaCache, inputTypes, options);
     }
-    return o;
+    return inputTypes;
   };
 }
 
