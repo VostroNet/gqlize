@@ -467,7 +467,8 @@ export default class GQLManager {
                   type: events.MUTATION_UPDATE,
                 });
               }
-              await this.processRelationshipMutation(targetDef, m, input, context, info);
+              const defName = targetDef.name;
+              await this.processRelationshipMutation(defName, m, input, context, info);
               return m;
             }));
           });
@@ -479,7 +480,8 @@ export default class GQLManager {
             }, defaultOptions));
             // let i = await this.processInputs(targetName, input, source, args, context, info);
             await Promise.all(targets.map(async(model) => {
-              await this.processRelationshipMutation(targetDef, model, input, context, info);
+              const defName = targetDef.name;
+              await this.processRelationshipMutation(defName, model, input, context, info);
               if (targetDef.before) {
                 await targetDef.before({
                   params: model, args, context, info,
@@ -487,7 +489,7 @@ export default class GQLManager {
                   type: events.MUTATION_DELETE,
                 });
               }
-              await targetAdapter.destroy(model, defaultOptions);
+              const result = await this.processDelete(defName, source, arg, context, info);
               if (targetDef.after) {
                 await targetDef.after({
                   result: model, args, context, info,
