@@ -1073,3 +1073,274 @@ test("add multiple ids", async() => {
   const res2 = await graphql(schema, mutation2, undefined, undefined, variableValues);
   expect(res2.data.models.Parent[0].children.edges).toHaveLength(1);
 });
+
+describe("2 degree mutation(nested)", () => {
+  let parent, child, schema, db;
+  beforeAll(async() => {
+    db = new Database();
+    const sqlite = new SequelizeAdapter({}, {
+      dialect: "sqlite",
+    });
+    db.registerAdapter(sqlite, "sqlite");
+    const parentDef = {
+      name: "Parent",
+      define: {
+        name: {
+          type: Sequelize.STRING,
+          allowNull: false,
+        },
+      },
+      relationships: [{
+        type: "hasMany",
+        model: "Child",
+        name: "children",
+        options: {
+          as: "children",
+          foreignKey: "parentId",
+        },
+      }],
+    };
+    const childDef = {
+      name: "Child",
+      define: {
+        name: {
+          type: Sequelize.STRING,
+          allowNull: true,
+        },
+      },
+      relationships: [
+        {
+          type: "belongsTo",
+          model: "Parent",
+          name: "parent",
+          options: {
+            foreignKey: "parentId",
+          },
+        },
+      ],
+    };
+    await db.addDefinition(parentDef, "sqlite");
+    await db.addDefinition(childDef, "sqlite");
+    await db.initialise();
+  });
+  afterAll(async() => {
+    sqlite.reset();
+  });
+
+  beforeEach(async () => {
+    const ParentModel = db.getModel("Parent");
+    
+    parent = await ParentModel.create({
+      name: "parent1",
+    });
+
+    schema = await createSchema(db);
+  });
+
+  test("should update child", async() => {
+    //given
+    const ChildModel = db.getModel("Child");
+    child = await ChildModel.create({
+      name: "child1",
+      parentId: parent.id,
+    });
+
+    const variableValues = {
+      parentId: toGlobalId("Parent", parent.id),
+      childId: toGlobalId("Child", child.id),
+    };
+    const mutation = `mutation($parentId: ID, $childId: ID) {
+      models {
+        Parent(update: {
+          where: {
+            id: {eq: $parentId}
+          },
+          input: {
+            name: "parent 2",
+            children: {
+              update: {
+                where: {id: {eq: $childId}},
+                input: {
+                  name: "child 2"
+                }
+              }
+            }
+          }
+        }) {
+          id
+          name
+          children {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    }`;
+
+    //when
+    const res = await graphql(schema, mutation, undefined, undefined, variableValues);
+
+    //then
+    expect(res.data.models.Parent[0].children.edges[0].node.name).toEqual("child 2");
+  });
+
+  test("should delete child", async() => {
+    //given
+    const ChildModel = db.getModel("Child");
+    child = await ChildModel.create({
+      name: "child1",
+      parentId: parent.id,
+    });
+
+    const variableValues = {
+      parentId: toGlobalId("Parent", parent.id),
+      childId: toGlobalId("Child", child.id),
+    };
+    const mutation = `mutation($parentId: ID, $childId: ID) {
+      models {
+        Parent(update: {
+          where: {
+            id: {eq: $parentId}
+          },
+          input: {
+            name: "parent 3",
+            children: {
+              delete:{
+                id:{eq: $childId}
+              }
+            }
+          }
+        }) {
+          id
+          name
+          children {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    }`;
+
+    //when
+    const res = await graphql(schema, mutation, undefined, undefined, variableValues);
+    let isChildStillExisting = await ChildModel.findOne({
+      where: {id: child.id}
+    });    
+
+    //then
+    expect(res.data.models.Parent[0] .children.edges).toHaveLength(0);
+    expect(isChildStillExisting).toBeFalsy();
+  });
+
+  test("should remove child", async() => {
+    //given
+    const ChildModel = db.getModel("Child");
+    child = await ChildModel.create({
+      name: "child1",
+      parentId: parent.id,
+    });
+
+    const variableValues = {
+      parentId: toGlobalId("Parent", parent.id),
+      childId: toGlobalId("Child", child.id),
+    };
+    const mutation = `mutation($parentId: ID, $childId: ID) {
+      models {
+        Parent(update: {
+          where: {
+            id: {eq: $parentId}
+          },
+          input: {
+            name: "parent 3",
+            children: {
+              remove:{
+                id:{eq: $childId}
+              }
+            }
+          }
+        }) {
+          id
+          name
+          children {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    }`;
+
+    //when
+    const res = await graphql(schema, mutation, undefined, undefined, variableValues);
+    let isChildStillExisting = await ChildModel.findOne({
+      where: {id: child.id}
+    });    
+
+    //then
+    expect(res.data.models.Parent[0] .children.edges).toHaveLength(0);
+    expect(isChildStillExisting).toBeTruthy();
+  });
+
+  test("should add child", async() => {
+    //given
+    const ChildModel = db.getModel("Child");
+    child = await ChildModel.create({
+      name: "child1"
+    });
+
+    const variableValues = {
+      parentId: toGlobalId("Parent", parent.id),
+      childId: toGlobalId("Child", child.id),
+    };
+    const mutation = `mutation($parentId: ID, $childId: ID) {
+      models {
+        Parent(update: {
+          where: {
+            id: {eq: $parentId}
+          },
+          input: {
+            name: "parent 3",
+            children: {
+              add:{
+                id:{eq: $childId}
+              }
+            }
+          }
+        }) {
+          id
+          name
+          children {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    }`;
+
+    //when
+    const res = await graphql(schema, mutation, undefined, undefined, variableValues);
+    let isChildStillExisting = await ChildModel.findOne({
+      where: {id: child.id}
+    });    
+
+    //then
+    expect(res.data.models.Parent[0] .children.edges).toHaveLength(1);
+    expect(res.data.models.Parent[0].children.edges[0].node.name).toEqual("child1");
+  });
+})
+
