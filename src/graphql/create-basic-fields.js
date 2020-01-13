@@ -13,8 +13,8 @@ import {
   nodeDefinitions,
   connectionDefinitions,
   connectionArgs,
-  globalIdField
 } from "graphql-relay";
+import globalIdField from "./utils/global-id-field";
 
 
 function globalIdBindValue(defName, key, instance) {
@@ -49,7 +49,7 @@ export default function createBasicFieldsFunc(defName, instance, definition, opt
           } else {
             globalKeyName = fieldDef.foreignTarget;
           }
-          f[key] = globalIdField(globalKeyName, globalIdBindValue(defName, key, instance));
+          f[key] = globalIdField(globalKeyName, globalIdBindValue(defName, key, instance), fieldDef.allowNull);
         } else {
           const type = instance.getGraphQLOutputType(defName, key, fieldDef.type);
           f[key] = {

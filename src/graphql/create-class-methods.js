@@ -2,22 +2,9 @@
 import waterfall from "../utils/waterfall";
 
 import {
-  GraphQLSchema,
   GraphQLObjectType,
-  GraphQLNonNull,
-  GraphQLScalarType,
-  GraphQLEnumType,
-  GraphQLList,
 } from "graphql";
 
-import {
-  fromGlobalId,
-  connectionFromArray,
-  nodeDefinitions,
-  connectionDefinitions,
-  connectionArgs,
-  globalIdField
-} from "graphql-relay";
 import { capitalize } from "../utils/word";
 
 

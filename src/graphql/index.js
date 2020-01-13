@@ -1,23 +1,9 @@
 import {
   GraphQLSchema,
   GraphQLObjectType,
-  GraphQLNonNull,
-  GraphQLScalarType,
-  GraphQLEnumType,
-  GraphQLList,
 } from "graphql";
 
-import {
-  fromGlobalId,
-  connectionFromArray,
-  nodeDefinitions,
-  connectionDefinitions,
-  connectionArgs,
-  globalIdField
-} from "graphql-relay";
-
 import createNodeInterface from "./utils/create-node-interface";
-
 
 import waterfall from "../utils/waterfall";
 import createModelType from "./create-model-type";

@@ -7,6 +7,7 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLObjectType,
+  GraphQLScalarType,
 } from "graphql";
 import Sequelize from "sequelize";
 import createSchemaCache from "../../src/graphql/create-schema-cache";
@@ -52,7 +53,7 @@ test("createBasicFieldsFunc - define", async() => {
   await db.addDefinition(itemDef);
   await db.initialise();
   const schemaCache = createSchemaCache();
-  const basicFieldsFunc = createBasicFieldsFunc(itemDef.name, db, itemDef, {},schemaCache);
+  const basicFieldsFunc = createBasicFieldsFunc(itemDef.name, db, itemDef, {}, schemaCache);
   expect(basicFieldsFunc).toBeInstanceOf(Function);
   const fields = basicFieldsFunc();
   expect(fields).toBeDefined();
@@ -214,7 +215,7 @@ test("createBasicFieldsFunc - foreign keys", async() => {
   const fields = basicFieldsFunc();
   expect(fields).toBeDefined();
   expect(fields.parentId).toBeDefined();
-  expect(fields.parentId.type).toBeInstanceOf(GraphQLNonNull);
-  expect(fields.parentId.type.ofType).toEqual(GraphQLID);
+  expect(fields.parentId.type).toBeInstanceOf(GraphQLScalarType);
+  expect(fields.parentId.type).toEqual(GraphQLID);
 
 });
