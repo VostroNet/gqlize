@@ -10,16 +10,19 @@ export default function createMutationModel(instance, defName, schemaCache, muta
   if (create) {
     inp.create = {
       type: input.create,
+      description: `This will create a new element for ${defName}`,
     };
   }
   if (update) {
     inp.update = {
       type: input.update,
+      description: `This will update a new element for ${defName}`,
     };
   }
   if (del) {
     inp.delete = {
       type: input.delete,
+      description: `This will delete a new element for ${defName}`,
     };
   }
   return {

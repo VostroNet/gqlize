@@ -26,7 +26,7 @@ function processDefaultArgs(args) {
 }
 
 
-export default function createListObject(instance, schemaCache, targetDefName, targetType, resolveData, prefix = "", suffix = "", customArgs) {
+export default function createListObject(instance, schemaCache, targetDefName, targetType, resolveData, prefix = "", suffix = "", customArgs, comment) {
   const name = `${capitalize(prefix)}${capitalize(targetDefName)}${capitalize(suffix)}`;
   if (schemaCache.lists[name]) {
     return schemaCache.lists[name]; //TODO: figure out why this is getting hit?
@@ -45,15 +45,18 @@ export default function createListObject(instance, schemaCache, targetDefName, t
     }));
   }
   const response = {
+    description: comment,
     type: new GraphQLObjectType({
       name: `${name}List`,
       fields() {
         return {
           pageInfo: {
             type: pageInfo,
+            description: "Pager object for cursor based operations",
           },
           total: {
             type: GraphQLInt,
+            description: "Total amount of records available",
           },
           edges: {
             type: new GraphQLList(new GraphQLObjectType({
@@ -64,28 +67,35 @@ export default function createListObject(instance, schemaCache, targetDefName, t
                 },
                 cursor: {
                   type: GraphQLString,
-                }
+                },
               },
+              description: `${name} edge`,
             })),
+            description: `List of edges for ${name}`,
           },
         };
-      }
+      },
     }),
     args: customArgs || Object.assign({
       after: {
         type: GraphQLString,
+        description: "If provided it will return results after the provided cursor",
       },
       first: {
         type: GraphQLInt,
+        description: "If provided the results will be the first ${amount} of records from provided cursor, if a cursor is not provided the results will be the first ${amount} of records.",
       },
       before: {
         type: GraphQLString,
+        description: "If provided it will return results before the provided cursor",
       },
       last: {
         type: GraphQLInt,
+        description: "If provided the results will be the first ${amount} of records from provided cursor, if a cursor is not provided  the results will be the last ${amount} of records.",
       },
       orderBy: {
         type: orderBy,
+        description: "If provided this will sort the results by the supplied column and direction",
       }
     }, instance.getDefaultListArgs(targetDefName)),
     async resolve(source, args, context, info) {

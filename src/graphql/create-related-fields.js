@@ -44,6 +44,7 @@ export default function createRelatedFieldsFunc(
             case "belongsTo":
               f[relName] = {
                 type: targetObject,
+                description: ((definition.comments || {}).fields || {})[relName],
                 resolve(source, args, context, info) {
                   return instance.resolveSingleRelationship(
                     targetDef.name,
@@ -57,7 +58,7 @@ export default function createRelatedFieldsFunc(
               };
               break;
             default:
-              f[relName] = createManyObject(instance, schemaCache, targetDef, targetObject, "", relationship);
+              f[relName] = createManyObject(instance, schemaCache, targetDef, targetObject, "", relationship, ((definition.comments || {}).fields || {})[relName]);
               break;
           }
 
@@ -70,7 +71,7 @@ export default function createRelatedFieldsFunc(
   };
 }
 
-function createManyObject(instance, schemaCache, targetDef, targetObject, prefix, relationship) {
+function createManyObject(instance, schemaCache, targetDef, targetObject, prefix, relationship, comment) {
   return createListObject(instance, schemaCache, targetDef.name, targetObject, (source, args, context, info) => {
     return instance.resolveManyRelationship(
       targetDef.name,
@@ -80,5 +81,5 @@ function createManyObject(instance, schemaCache, targetDef, targetObject, prefix
       context,
       info,
     );
-  }, prefix, `${relationship.associationType}${capitalize(relationship.name)}`);
+  }, prefix, `${relationship.associationType}${capitalize(relationship.name)}`, undefined, comment);
 }

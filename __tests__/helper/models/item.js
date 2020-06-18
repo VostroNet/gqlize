@@ -1,13 +1,20 @@
 import Sequelize from "sequelize";
+import { GraphQLBoolean } from "graphql";
 // import {GraphQLID} from "graphql";
 // import {toGlobalId} from "graphql-relay/lib/node/node";
 
 export default {
   name: "Item",
   tableName: "items",
+  comment: "item comment",
   define: {
-    id: {type: Sequelize.UUID, allowNull: false, unique: true, primaryKey: true,
+    id: {
+      type: Sequelize.UUID,
+      allowNull: false,
+      unique: true,
+      primaryKey: true,
       defaultValue: Sequelize.UUIDV4, // Sequelize.literal("(lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6))))"),
+      comment: "The is the id column",
     },
     name: {type: Sequelize.STRING, allowNull: false},
   },
@@ -25,13 +32,54 @@ export default {
         through: "btm-tasks",
         foreignKey: "itemId",
       },
-    }
+    },
   ],
+  comments: {
+    fields: {
+      name: "name comment",
+      hasOne: "hasOne comment",
+      children: "children comment",
+      testInstanceMethod: "testInstanceMethod comment",
+    },
+    classMethods: {
+      reverseName: "reverseName comment",
+    },
+  },
+  expose: {
+    instanceMethods: {
+      query: {
+        testInstanceMethod: {
+          type: GraphQLBoolean,
+        },
+      },
+    },
+    classMethods: {
+      mutations: {
+        reverseName: {
+          type: GraphQLBoolean,
+        },
+      },
+    },
+  },
   options: {
     tableName: "items",
     hooks: {},
-    classMethods: {},
-    instanceMethods: {},
+    classMethods: {
+      reverseName({input: {amount}}, req) {
+        return {
+          id: 1,
+          name: `reverseName${amount}`,
+        };
+      },
+    },
+    instanceMethods: {
+      testInstanceMethod({input: {amount}}, req) {
+        return [{
+          id: this.id,
+          name: `${this.name}${amount}`,
+        }];
+      },
+    },
   },
   after({result}) {
     if (!result) {

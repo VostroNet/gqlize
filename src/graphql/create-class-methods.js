@@ -54,6 +54,7 @@ export function createClassMethodFields(instance, defName, definition, query, op
     o[methodName] = {
       type: outputType,
       args,
+      description: ((definition.comments || {}).classMethods || {})[methodName],
       async resolve(source, args, context, info) {
         return instance.resolveClassMethod(defName, methodName, source, args, context, info);
       },

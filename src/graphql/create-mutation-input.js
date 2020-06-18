@@ -25,6 +25,7 @@ export function generateInputFields(instance, defName, definition, defFields, re
       return fields;
     }
     const field = defFields[fieldName];
+    const comment = ((definition.comments || {}).fields || {})[fieldName] || field.description;
     if (definition.override) {
       const overrideFieldDefinition = definition.override[fieldName];
 
@@ -47,9 +48,15 @@ export function generateInputFields(instance, defName, definition, defFields, re
         }
 
         if (!field.allowNull && !field.autoPopulated && !forceOptional) {
-          fields[fieldName] = {type: new GraphQLNonNull(inputType)};
+          fields[fieldName] = {
+            type: new GraphQLNonNull(inputType),
+            description: comment,
+          };
         } else {
-          fields[fieldName] = {type: inputType};
+          fields[fieldName] = {
+            type: inputType,
+            description: comment,
+          };
         }
       }
     }
@@ -57,12 +64,14 @@ export function generateInputFields(instance, defName, definition, defFields, re
       if (instance.getGlobalKeys(defName).indexOf(fieldName) > -1) {
         fields[fieldName] = {
           type: GraphQLID,
+          description: comment || `This a primary key for ${defName}`,
         };
       } else {
         const type = instance.getGraphQLInputType(defName, `${fieldName}${forceOptional ? "Optional" : "Required"}`, field.type);
         let t = field.allowNull || field.autoPopulated || forceOptional ? type : new GraphQLNonNull(type);
         fields[fieldName] = {
           type: t,
+          description: comment,
         };
       }
     }
@@ -96,9 +105,11 @@ export function generateInputFields(instance, defName, definition, defFields, re
       updateInput = createGQLInputObject(`${defName}${capitalize(relName)}Update`, {
         where: {
           type: filterType,
+          description: "This will apply a filter to your mutation",
         },
         input: {
           type: inputTypes[relationship.target].optional,
+          description: "This will update the items that you targeted with the filter in the where element",
         },
       }, schemaCache);
     }
@@ -108,41 +119,50 @@ export function generateInputFields(instance, defName, definition, defFields, re
         if (createInput) {
           fld.create = {
             type: new GraphQLList(createInput),
+            description: `This will create a new element with a relationship to the current ${defName}`,
           };
         }
         if (updateInput) {
           fld.update = {
             type: new GraphQLList(updateInput),
+            description: `This will update any matching elements that have a relationship to the current ${defName}`,
           };
         }
         fld.add = {
           type: new GraphQLList(filterType),
+          description: `This will add any matching elements with a relationship to the current ${defName}`,
         };
         fld.remove = {
           type: new GraphQLList(filterType),
+          description: `This will remove the relationship from any matching elements from the current ${defName}`,
         };
         fld.delete = {
           type: new GraphQLList(filterType),
+          description: `This will delete any matching elements that have a relationship with the current ${defName}`,
         };
         break;
       default:
         if (createInput) {
           fld.create = {
             type: createInput,
+            description: `This will create a new element with a relationship to the current ${defName}`,
           };
         }
         if (updateInput) {
           fld.update = {
             type: updateInput,
+            description: `This will update any matching elements that have a relationship to the current ${defName}`,
           };
         }
         fld.delete = {
           type: filterType,
+          description: `This will delete any matching elements that have a relationship with the current ${defName}`,
         };
         break;
     }
     fields[relName] = {
       type: createGQLInputObject(`${defName}${capitalize(relName)}${capitalize(relationship.associationType)}Input`, fld, schemaCache),
+      description: `This is the mutation object for ${defName}${capitalize(relName)}${capitalize(relationship.associationType)}`,
     };
     return fields;
   }, def);
@@ -179,12 +199,15 @@ export default function createMutationInput(instance, defName, schemaCache, inpu
     update: (doNotSkipUpdate) ? new GraphQLList(createGQLInputObject(`${defName}UpdateInput`, {
       where: {
         type: filterType,
+        description: "If provided this will restrict to changes to only the elements that match",
       },
       limit: {
         type: GraphQLInt,
+        description: "If provided this will restrict the changes to only the first amount of ${limit}",
       },
       input: {
         type: optional,
+        description: "This is the input for the data",
       },
     }, schemaCache)) : undefined,
     delete: new GraphQLList(filterType),

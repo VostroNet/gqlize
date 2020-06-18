@@ -4,7 +4,7 @@ import {
 
 const validate = false;
 
-export default function createGQLInputObject(name, fields, schemaCache) {
+export default function createGQLInputObject(name, fields, schemaCache, comment) {
   // if (schemaCache.mutationInputFields[name] && validate) {
   //   let f;
   //   if (fields instanceof Function) {
@@ -20,6 +20,7 @@ export default function createGQLInputObject(name, fields, schemaCache) {
     schemaCache.mutationInputFields[name] = new GraphQLInputObjectType({
       name,
       fields,
+      description: comment,
     });
     // if (validate) {
     //   schemaCache.mutationInputFields[name].__fields = fields; // eslint-disable-line

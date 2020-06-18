@@ -2,14 +2,14 @@
   "presets": [[
     "@babel/preset-env", {
       "targets": {
-        "node": "current",
+        "node": "current"
       },
       "useBuiltIns": "entry",
-      "corejs": "3",
-    }],
+      "corejs": "3"
+    }]
   ],
   "plugins": [
     "@babel/plugin-proposal-object-rest-spread",
-    "@babel/plugin-proposal-class-properties",
-  ],
+    "@babel/plugin-proposal-class-properties"
+  ]
 }

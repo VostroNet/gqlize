@@ -7,5 +7,15 @@
     // Insert spaces when pressing Tab.
     "editor.insertSpaces": true,
     "files.eol": "\n",
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#113419",
+        "titleBar.activeBackground": "#174923",
+        "titleBar.activeForeground": "#F7FCF9"
+    },
+    "jestrunner.debugOptions": {
+        "args": ["--no-cache"],
+        "sourcemaps": "inline",
+        "disableOptimisticBPs": true,
+    }
 
 }

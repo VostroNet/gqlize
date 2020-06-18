@@ -54,7 +54,7 @@ export default function createBasicFieldsFunc(defName, instance, definition, opt
           const type = instance.getGraphQLOutputType(defName, key, fieldDef.type);
           f[key] = {
             type: fieldDef.allowNull ? type : new GraphQLNonNull(type),
-            // description: fieldDef.description,
+            description: ((definition.comments || {}).fields || {})[key] || fieldDef.description,
             resolve: fieldDef.resolve,
             args: fieldDef.args,
           };

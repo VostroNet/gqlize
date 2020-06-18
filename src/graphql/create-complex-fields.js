@@ -32,6 +32,7 @@ export default function createComplexFieldsFunc(
           fields[methodName] = {
             type: targetType,
             args,
+            description: ((definition.comments || {}).fields || {})[methodName],
             async resolve(source, args, context, info) {
               return source[methodName].apply(source, [args, context]);
             },
