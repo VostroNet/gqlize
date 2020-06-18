@@ -576,7 +576,12 @@ export default class GQLManager {
         if (typeof args.input[k] === "function") {
           v = args.input[k](info.variableValues);
         }
-        o[k] = fromGlobalId(v).id;
+        if(v === null || v === undefined)  {
+          o[k] = null;
+        } else {
+          o[k] = fromGlobalId(v).id;
+        }
+        //o[k] = fromGlobalId(v).id;
       } else {
         o[k] = args.input[k];
       }

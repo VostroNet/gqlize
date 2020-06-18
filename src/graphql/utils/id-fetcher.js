@@ -31,6 +31,9 @@ import {
 
 export default function idFetcher(database, nodeTypeMapper) {
   return async(globalId, context, info) => {
+    if(globalId === null || globalId === undefined)  {
+      return null;
+    }
     const {type, id} = fromGlobalId(globalId);
 
     const nodeType = nodeTypeMapper.item(type);
