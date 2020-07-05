@@ -30,7 +30,7 @@ gulp.task("compile:publish", gulp.series("lint", () => {
       "presets": [[
         "@babel/preset-env", {
           "targets": {
-            "node": "10.15.3", //10.15.3 LTS as of 07/05/2019
+            "node": "12.16.3", //12.16.3 LTS as of 07/05/2020
           },
           "useBuiltIns": "entry",
           "corejs": "3",

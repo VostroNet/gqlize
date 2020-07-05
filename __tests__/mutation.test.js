@@ -29,6 +29,52 @@ describe("mutations", () => {
     validateResult(queryResult);
     return expect(queryResult.data.models.Task.edges).toHaveLength(1);
   });
+  it("create - set parentid as null", async() => {
+    const instance = await createInstance();
+    const schema = await createSchema(instance);
+    const mutation = `mutation {
+      models {
+        Item(create: {name: "item1", parentId: null}) {
+          id, 
+          name
+        }
+      }
+    }`;
+    const mutationResult = await graphql(schema, mutation);
+    validateResult(mutationResult);
+    const query = "query { models { Item { edges { node { id, name, parentId } } } } }";
+    const queryResult = await graphql(schema, query);
+    validateResult(queryResult);
+    return expect(queryResult.data.models.Item.edges).toHaveLength(1);
+  });
+  it("update - set parentid as null", async() => {
+    const instance = await createInstance();
+    const schema = await createSchema(instance);
+    const createMutation = `mutation {
+      models {
+        Item(create: {name: "item1", parentId: null}) {
+          id, 
+          name
+        }
+      }
+    }`;
+    const createMutationResult = await graphql(schema, createMutation);
+    validateResult(createMutationResult);
+    const updateMutation = `mutation {
+      models {
+        Item(update: { where:{name: {eq: "item1"}}, input: {name: "item2", parentId: null}}) {
+          id, 
+          name
+        }
+      }
+    }`;
+    const updateMutationResult = await graphql(schema, updateMutation);
+    validateResult(updateMutationResult);
+    const query = "query { models { Item { edges { node { id, name, parentId } } } } }";
+    const queryResult = await graphql(schema, query);
+    validateResult(queryResult);
+    return expect(queryResult.data.models.Item.edges).toHaveLength(1);
+  });
   it("create - override", async() => {
     const instance = await createInstance();
     const schema = await createSchema(instance);
