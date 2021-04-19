@@ -1,4 +1,4 @@
-import { GraphQLID, GraphQLNonNull } from "graphql";
+import {GraphQLID, GraphQLNonNull} from "graphql";
 
 import {
   toGlobalId,

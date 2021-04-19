@@ -357,8 +357,163 @@ describe("queries", () => {
 });
 
 
+it("include operator - not required", async() => {
+  const instance = await createInstance();
+  const {Task, TaskItem} = instance.models;
+  const model = await Task.create({
+    name: "task1",
+  });
+  await TaskItem.create({
+    name: "taskitem1",
+    taskId: model.get("id"),
+  });
 
-it("where operators", async() => {
+  await TaskItem.create({
+    name: "taskitem2",
+    taskId: model.get("id"),
+  });
+  await Task.create({
+    name: "task2",
+  });
+  const schema = await createSchema(instance);
+  const result = await graphql(schema, `query {
+    models { 
+      Task(include: {
+        items: {
+          required: false
+        }
+      }) { 
+        edges { 
+          node { 
+            id, 
+            name, 
+            items { 
+              edges { 
+                node { 
+                  id 
+                } 
+              } 
+            } 
+          } 
+        } 
+      } 
+    }
+  }`);
+
+  validateResult(result);
+  expect(result.data.models.Task.edges).toHaveLength(2);
+  expect(result.data.models.Task.edges[0].node.name).toEqual("task1");
+  expect(result.data.models.Task.edges[0].node.items.edges).toHaveLength(2);
+});
+
+
+it("include operator - relationship filter", async() => {
+  const instance = await createInstance();
+  const {Task, TaskItem} = instance.models;
+  const model = await Task.create({
+    name: "task1",
+  });
+  await TaskItem.create({
+    name: "taskitem1",
+    taskId: model.get("id"),
+  });
+
+  await TaskItem.create({
+    name: "taskitem2",
+    taskId: model.get("id"),
+  });
+  await Task.create({
+    name: "task2",
+  });
+  const schema = await createSchema(instance);
+  const result = await graphql(schema, `query {
+    models { 
+      Task(include: {
+        items: {
+          required: true
+          where: {
+            name: {
+              eq: "taskitem2"
+            }
+          }
+        }
+      }) { 
+        edges { 
+          node { 
+            id, 
+            name, 
+            items { 
+              edges { 
+                node { 
+                  id
+                  name
+                } 
+              } 
+            } 
+          } 
+        } 
+      } 
+    }
+  }`);
+
+  validateResult(result);
+  expect(result.data.models.Task.edges).toHaveLength(1);
+  expect(result.data.models.Task.edges[0].node.name).toEqual("task1");
+  expect(result.data.models.Task.edges[0].node.items.edges).toHaveLength(1);
+  expect(result.data.models.Task.edges[0].node.items.edges[0].node.name).toEqual("taskitem2");
+});
+
+it("include operator - required", async() => {
+  const instance = await createInstance();
+  const {Task, TaskItem} = instance.models;
+  const model = await Task.create({
+    name: "task1",
+  });
+  await TaskItem.create({
+    name: "taskitem1",
+    taskId: model.get("id"),
+  });
+
+  await TaskItem.create({
+    name: "taskitem2",
+    taskId: model.get("id"),
+  });
+  await Task.create({
+    name: "task2",
+  });
+  const schema = await createSchema(instance);
+  const result = await graphql(schema, `query {
+    models { 
+      Task(include: {
+        items: {
+          required: true
+        }
+      }) { 
+        edges { 
+          node { 
+            id, 
+            name, 
+            items { 
+              edges { 
+                node { 
+                  id 
+                } 
+              } 
+            } 
+          } 
+        } 
+      } 
+    }
+  }`);
+
+  validateResult(result);
+  expect(result.data.models.Task.edges).toHaveLength(1);
+  expect(result.data.models.Task.edges[0].node.name).toEqual("task1");
+  expect(result.data.models.Task.edges[0].node.items.edges).toHaveLength(2);
+});
+
+
+it("where operators - not chained", async() => {
   const instance = await createInstance();
   const {Task, TaskItem} = instance.models;
   const model = await Task.create({

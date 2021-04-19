@@ -16,7 +16,7 @@ test("createBeforeAfter", async() => {
   const itemDef = {
     name: "Item",
     define: {},
-    relationships: []
+    relationships: [],
   };
   await db.addDefinition(itemDef);
   const {
@@ -86,7 +86,7 @@ test("createBeforeAfter - before - with hooks", async() => {
       return {
         value: findOptions.value + 1,
       };
-    }
+    },
   });
   expect(before).toBeDefined();
   const result = await before({value: 1}, "args", "context", "info");
@@ -114,7 +114,7 @@ test("createBeforeAfter - before - replace primary key", async() => {
       expect(context).toEqual("context");
       expect(info).toEqual("info");
       return findOptions;
-    }
+    },
   });
   expect(before).toBeDefined();
   const findOptions = await before({where: {
@@ -151,7 +151,7 @@ test("createBeforeAfter - before - replace foreign key", async() => {
       expect(context).toEqual("context");
       expect(info).toEqual("info");
       return findOptions;
-    }
+    },
   });
   expect(before).toBeDefined();
   const findOptions = await before({where: {
@@ -219,7 +219,7 @@ test("createBeforeAfter - after - with hooks", async() => {
       return {
         value: findOptions.value + 1,
       };
-    }
+    },
   });
   expect(after).toBeDefined();
   const result = await after({value: 1}, "args", "context", "info");
@@ -264,7 +264,7 @@ test("createBeforeAfter - afterList", async() => {
       return {
         value: findOptions.value + 1,
       };
-    }
+    },
   });
   expect(afterList).toBeDefined();
   const result = await afterList([{value: 1}, {value: 2}], "args", "context", "info");
@@ -284,7 +284,7 @@ test("createBeforeAfter - after - filter undefined edges", async() => {
   const itemDef = {
     name: "Item",
     define: {},
-    relationships: []
+    relationships: [],
   };
   await db.addDefinition(itemDef);
   const {
@@ -293,7 +293,7 @@ test("createBeforeAfter - after - filter undefined edges", async() => {
   expect(after).toBeDefined();
   const result = await after({edges: [
     undefined,
-    1
+    1,
   ]}, "args", "context", "info");
   expect(result).toBeDefined();
   expect(result.edges).toHaveLength(1);

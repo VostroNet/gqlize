@@ -204,6 +204,11 @@ export async function createSchemaObjects(instance, options) {
       fields: mutationRootFields,
     });
   }
+  // rootSchema.INode = {
+  //   __resolveType: (obj, context, info) => {
+  //     return false;
+  //   },
+  // };
 
   // const relayTypes = Object.keys(sqlInstance.models).reduce((types, name) => {
   //   if (typeCollection[name]) {

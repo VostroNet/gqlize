@@ -1,5 +1,5 @@
 import {graphql} from "graphql";
-import uuid from "uuid";
+import {v4 as uuid} from "uuid";
 import {createInstance, validateResult} from "./helper";
 import {createSchema} from "../src/graphql/index";
 import {fromGlobalId} from "graphql-relay";

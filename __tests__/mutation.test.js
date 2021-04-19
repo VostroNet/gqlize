@@ -437,6 +437,7 @@ describe("mutations", () => {
       classMethods {
         Task {
           reverseName(input: {amount: 2}) {
+            id
             name
           }
         }
@@ -1169,13 +1170,13 @@ describe("2 degree mutation(nested)", () => {
     await db.addDefinition(childDef, "sqlite");
     await db.initialise();
   });
-  afterAll(async() => {
-    sqlite.reset();
-  });
+  // afterAll(async() => {
+  //   sqlite.reset();
+  // });
 
-  beforeEach(async () => {
+  beforeEach(async() => {
     const ParentModel = db.getModel("Parent");
-    
+
     parent = await ParentModel.create({
       name: "parent1",
     });
@@ -1278,8 +1279,8 @@ describe("2 degree mutation(nested)", () => {
     //when
     const res = await graphql(schema, mutation, undefined, undefined, variableValues);
     let isChildStillExisting = await ChildModel.findOne({
-      where: {id: child.id}
-    });    
+      where: {id: child.id},
+    });
 
     //then
     expect(res.data.models.Parent[0] .children.edges).toHaveLength(0);
@@ -1330,8 +1331,8 @@ describe("2 degree mutation(nested)", () => {
     //when
     const res = await graphql(schema, mutation, undefined, undefined, variableValues);
     let isChildStillExisting = await ChildModel.findOne({
-      where: {id: child.id}
-    });    
+      where: {id: child.id},
+    });
 
     //then
     expect(res.data.models.Parent[0] .children.edges).toHaveLength(0);
@@ -1342,7 +1343,7 @@ describe("2 degree mutation(nested)", () => {
     //given
     const ChildModel = db.getModel("Child");
     child = await ChildModel.create({
-      name: "child1"
+      name: "child1",
     });
 
     const variableValues = {
@@ -1381,12 +1382,12 @@ describe("2 degree mutation(nested)", () => {
     //when
     const res = await graphql(schema, mutation, undefined, undefined, variableValues);
     let isChildStillExisting = await ChildModel.findOne({
-      where: {id: child.id}
-    });    
+      where: {id: child.id},
+    });
 
     //then
     expect(res.data.models.Parent[0] .children.edges).toHaveLength(1);
     expect(res.data.models.Parent[0].children.edges[0].node.name).toEqual("child1");
   });
-})
+});
 

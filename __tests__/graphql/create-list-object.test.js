@@ -5,12 +5,8 @@ import createListObject from "../../src/graphql/create-list-object";
 import createSchemaCache from "../../src/graphql/create-schema-cache";
 import createNodeInterface from "../../src/graphql/utils/create-node-interface";
 import {
-  GraphQLID,
-  GraphQLNonNull,
-  GraphQLString,
   GraphQLObjectType,
 } from "graphql";
-import Sequelize from "sequelize";
 
 test("createListObject", async() => {
   const db = new Database();

@@ -20,7 +20,7 @@ test("createBasicFieldsFunc - empty define", async() => {
   const itemDef = {
     name: "Item",
     define: {},
-    relationships: []
+    relationships: [],
   };
   await db.addDefinition(itemDef);
   await db.initialise();
@@ -46,9 +46,9 @@ test("createBasicFieldsFunc - define", async() => {
         type: Sequelize.STRING,
         allowNull: false,
         comment: "Hello",
-      }
+      },
     },
-    relationships: []
+    relationships: [],
   };
   await db.addDefinition(itemDef);
   await db.initialise();
@@ -81,7 +81,7 @@ test("createBasicFieldsFunc - define - override", async() => {
         type: Sequelize.JSON,
         allowNull: true,
         comment: "Hello",
-      }
+      },
     },
     override: {
       nonnull: {
@@ -107,7 +107,7 @@ test("createBasicFieldsFunc - define - override", async() => {
         },
       },
     },
-    relationships: []
+    relationships: [],
   };
   await db.addDefinition(itemDef);
   await db.initialise();
@@ -143,7 +143,7 @@ test("createBasicFieldsFunc - define - with scalar", async() => {
         type: Sequelize.JSON,
         allowNull: true,
         comment: "Hello",
-      }
+      },
     },
     override: {
       nonnull: {
@@ -155,7 +155,7 @@ test("createBasicFieldsFunc - define - with scalar", async() => {
         type: GraphQLString,
       },
     },
-    relationships: []
+    relationships: [],
   };
   await db.addDefinition(itemDef);
   await db.initialise();

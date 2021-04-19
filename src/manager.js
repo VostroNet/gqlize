@@ -283,9 +283,11 @@ export default class GQLManager {
     return adapter.getFilterGraphQLType(defName, definition);
   }
   resolveManyRelationship = async(defName, relationship, source, args, context, info) => {
+
+    const options = createGetGraphQLArgsFunc(context, info, source);
+
     const adapter = this.getModelAdapter(defName);
     const definition = this.getDefinition(defName);
-    //(instance, defName, args, info, defaultOptions = {})
     const argNames = adapter.getAllArgsToReplaceId();
     const globalKeys = this.getGlobalKeys(defName);
     const a = Object.keys(args).reduce((o, key) => {
@@ -306,28 +308,12 @@ export default class GQLManager {
         offset -= Number(args.limit);
       }
     }
-    const {getOptions, countOptions} = await adapter.processListArgsToOptions(defName, a, offset, info, definition.whereOperators, createGetGraphQLArgsFunc(context, info, source));
-    const models = await source[relationship.accessors.get](getOptions);
-    let total;
-    if (adapter.hasInlineCountFeature()) {
-      total = await adapter.getInlineCount(models);
-    } else {
-      total = await source[relationship.accessors.count](countOptions);
-    }
-    return {
-      total, models,
-    };
+    return adapter.resolveManyRelationship(defName, relationship, source, a, offset, definition.whereOperators, info, options);
   }
   resolveSingleRelationship = async(defName, relationship, source, args, context, info) => {
-    return source[relationship.accessors.get]({
-      getGraphQLArgs() {
-        return {
-          context,
-          info,
-          source,
-        };
-      },
-    });
+    const adapter = this.getModelAdapter(defName);
+    const options = createGetGraphQLArgsFunc(context, info, source);
+    return adapter.resolveSingleRelationship(defName, relationship, source, args, context, info, options);
   }
   resolveFindAll = async(defName, source, args, context, info) => {
     const definition = this.getDefinition(defName);
@@ -489,7 +475,7 @@ export default class GQLManager {
                   type: events.MUTATION_DELETE,
                 });
               }
-              const result = await this.processDelete(defName, source, arg, context, info);
+              await this.processDelete(defName, source, arg, context, info);
               if (targetDef.after) {
                 await targetDef.after({
                   result: model, args, context, info,
@@ -576,7 +562,7 @@ export default class GQLManager {
         if (typeof args.input[k] === "function") {
           v = args.input[k](info.variableValues);
         }
-        if(v === null || v === undefined)  {
+        if (v === null || v === undefined) {
           o[k] = null;
         } else {
           o[k] = fromGlobalId(v).id;
@@ -640,6 +626,13 @@ export default class GQLManager {
     };
     return processDelete(where, createGetGraphQLArgsFunc(context, info, source), before, after);
   }
+
+  isTypeOf = (defName, definition, value) => {
+    const Model = this.getModel(defName);
+    const isType = value instanceof Model;
+    return isType;
+  }
+
 }
 
 

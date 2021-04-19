@@ -19,7 +19,7 @@
     "type": "node",
     "request": "launch",
     "disableOptimisticBPs": true,
-    "args": ["-r", "@babel/register", "./__tests__/helper/express.js"],
+    "args": ["--trace-deprecation", "-r", "@babel/register", "./__tests__/helper/express.js"],
     "env": {
       "NODE_ENV": "development",
       "DEBUG": "sql*"

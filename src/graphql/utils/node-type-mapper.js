@@ -35,7 +35,7 @@ export default class NodeTypeMapper {
       let v = types[k];
       this.map[k] = v.type
         ? v
-        : { type: v };
+        : {type: v};
     });
   }
 
