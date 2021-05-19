@@ -277,6 +277,12 @@ export default class GQLManager {
     const definition = this.getDefinition(defName);
     return adapter.getDefaultListArgs(defName, definition);
   }
+
+  getOrderByGraphQLType = (defName) => {
+    const adapter = this.getModelAdapter(defName);
+    const definition = this.getDefinition(defName);
+    return adapter.getOrderByGraphQLType(defName, definition);
+  }
   getFilterGraphQLType = (defName) => {
     const adapter = this.getModelAdapter(defName);
     const definition = this.getDefinition(defName);
@@ -288,16 +294,17 @@ export default class GQLManager {
 
     const adapter = this.getModelAdapter(defName);
     const definition = this.getDefinition(defName);
-    const argNames = adapter.getAllArgsToReplaceId();
-    const globalKeys = this.getGlobalKeys(defName);
-    const a = Object.keys(args).reduce((o, key) => {
-      if (argNames.indexOf(key) > -1) {
-        o[key] = replaceIdDeep(args[key], globalKeys, info.variableValues);
-      } else {
-        o[key] = args[key];
-      }
-      return o;
-    }, {});
+    const a = await adapter.replaceIdInArgs(args, defName, info.variableValues);
+    // const argNames = adapter.getAllArgsToReplaceId();
+    // const globalKeys = this.getGlobalKeys(defName);
+    // const a = Object.keys(args).reduce((o, key) => {
+    //   if (argNames.indexOf(key) > -1) {
+    //     o[key] = replaceIdDeep(args[key], globalKeys, info.variableValues);
+    //   } else {
+    //     o[key] = args[key];
+    //   }
+    //   return o;
+    // }, {});
 
     let offset;
     if (args.after) {
@@ -318,17 +325,9 @@ export default class GQLManager {
   resolveFindAll = async(defName, source, args, context, info) => {
     const definition = this.getDefinition(defName);
     const adapter = this.getModelAdapter(defName);
-    //(instance, defName, args, info, defaultOptions = {})
-    const argNames = adapter.getAllArgsToReplaceId();
-    const globalKeys = this.getGlobalKeys(defName);
-    const a = Object.keys(args).reduce((o, key) => {
-      if (argNames.indexOf(key) > -1) {
-        o[key] = replaceIdDeep(args[key], globalKeys, info.variableValues);
-      } else {
-        o[key] = args[key];
-      }
-      return o;
-    }, {});
+    const a = await adapter.replaceIdInArgs(args, defName, info.variableValues);
+    // const argNames = adapter.getAllArgsToReplaceId();
+
     let selectedFields = [];
     if (info) {
       if (Array.isArray(info.fieldNodes)) {

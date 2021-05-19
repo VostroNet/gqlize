@@ -1,6 +1,6 @@
 {
   "name": "@vostro/gqlize",
-  "version": "4.0.1",
+  "version": "4.2.0",
   "description": "A relational databinder for generating graphql schemas to connect and work with multi data sources",
   "main": "lib/index.js",
   "scripts": {
@@ -23,7 +23,7 @@
     "@babel/preset-env": "^7.13.15",
     "@babel/register": "^7.13.14",
     "@types/jest": "^26.0.22",
-    "@vostro/gqlize-adapter-sequelize": "4.0.1",
+    "@vostro/gqlize-adapter-sequelize": "4.2.0",
     "@vostro/graphql-types": "^1.1.1",
     "apollo-server-express": "^2.23.0",
     "body-parser": "^1.19.0",

@@ -512,6 +512,60 @@ it("include operator - required", async() => {
   expect(result.data.models.Task.edges[0].node.items.edges).toHaveLength(2);
 });
 
+it("include operator - where primarykey converted correctly", async() => {
+  const instance = await createInstance();
+  const {Task, TaskItem} = instance.models;
+  const model = await Task.create({
+    name: "task1",
+  });
+  await TaskItem.create({
+    name: "taskitem1",
+    taskId: model.get("id"),
+  });
+
+  const ti2 = await TaskItem.create({
+    name: "taskitem2",
+    taskId: model.get("id"),
+  });
+  await Task.create({
+    name: "task2",
+  });
+  const schema = await createSchema(instance);
+  const result = await graphql(schema, `query {
+    models { 
+      Task(include: {
+        items: {
+          required: true
+          where: {
+            id: {
+              eq: "${toGlobalId("TaskItem", ti2.id)}"
+            }
+          }
+        }
+      }) { 
+        edges { 
+          node { 
+            id, 
+            name, 
+            items { 
+              edges { 
+                node { 
+                  id 
+                } 
+              } 
+            } 
+          } 
+        } 
+      } 
+    }
+  }`);
+
+  validateResult(result);
+  expect(result.data.models.Task.edges).toHaveLength(1);
+  expect(result.data.models.Task.edges[0].node.name).toEqual("task1");
+  expect(result.data.models.Task.edges[0].node.items.edges).toHaveLength(1);
+});
+
 
 it("where operators - not chained", async() => {
   const instance = await createInstance();

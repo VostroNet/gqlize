@@ -4,8 +4,8 @@ import {
 } from "graphql";
 
 import createGQLInputObject from "./create-gql-input-object";
-import { capitalize } from "../utils/word";
-import { waterfallSync } from "../utils/waterfall";
+import {capitalize} from "../utils/word";
+import {waterfallSync} from "../utils/waterfall";
 //(instance, defName, fields, relationships, inputTypes, false)
 export function generateInputFields(instance, defName, definition, defFields, relationships, inputTypes, schemaCache, forceOptional, options) {
   let def = waterfallSync(Object.keys(defFields), (fieldName, fields) => {

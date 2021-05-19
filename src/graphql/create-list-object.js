@@ -31,19 +31,7 @@ export default function createListObject(instance, schemaCache, targetDefName, t
   if (schemaCache.lists[name]) {
     return schemaCache.lists[name]; //TODO: figure out why this is getting hit?
   }
-  const fields = instance.getFields(targetDefName);
-  let orderBy = schemaCache.orderBy[`${name}OrderBy`];
-  if (!orderBy) {
-    schemaCache.orderBy[`${name}OrderBy`] = orderBy = new GraphQLList(new GraphQLEnumType({
-      name: `${name}OrderBy`,
-      values: Object.keys(fields).reduce((o, fieldName) => {
-        o[`${fieldName}ASC`] = {value: [fieldName, "ASC"]};
-        o[`${fieldName}DESC`] = {value: [fieldName, "DESC"]};
-        return o;
-      }, {}),
-      // description: "",
-    }));
-  }
+  const orderBy = instance.getOrderByGraphQLType(targetDefName);
   const response = {
     description: comment,
     type: new GraphQLObjectType({
