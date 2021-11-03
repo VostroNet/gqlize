@@ -51,9 +51,24 @@ export function createClassMethodFields(instance, defName, definition, query, op
     if (!outputType) {
       return o;
     }
+    let newArgs;
+    if (args) {
+      newArgs = Object.keys(args).reduce((oa, argName) => {
+        let arg = args[argName];
+        let argType = (arg.type instanceof String || typeof arg.type === "string") ? schemaCache.mutationInputFields[arg.type] : arg.type;
+        if (argType) {
+          oa[argName] = {
+            ...arg,
+            type: argType,
+          };
+        }
+        return oa;
+      }, {});
+    }
+
     o[methodName] = {
       type: outputType,
-      args,
+      args: newArgs,
       description: ((definition.comments || {}).classMethods || {})[methodName],
       async resolve(source, args, context, info) {
         return instance.resolveClassMethod(defName, methodName, source, args, context, info);

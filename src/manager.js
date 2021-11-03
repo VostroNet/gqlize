@@ -158,7 +158,7 @@ export default class GQLManager {
   getGlobalKeys = (defName) => {
     const fields = this.getFields(defName);
     return Object.keys(fields).filter((key) => {
-      return fields[key].foreignKey || fields[key].primaryKey;
+      return (fields[key].foreignKey || fields[key].primaryKey) && !fields[key].ignoreGlobalKey;
     });
   }
   getFields = (defName) => {

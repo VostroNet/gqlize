@@ -1,5 +1,5 @@
 import {
-  GraphQLInputObjectType,
+  GraphQLInputObjectType, GraphQLList,
 } from "graphql";
 
 const validate = false;
@@ -22,6 +22,7 @@ export default function createGQLInputObject(name, fields, schemaCache, comment)
       fields,
       description: comment,
     });
+    schemaCache.mutationInputFields[`${name}[]`] = new GraphQLList(schemaCache.mutationInputFields[name]);
     // if (validate) {
     //   schemaCache.mutationInputFields[name].__fields = fields; // eslint-disable-line
     // }
