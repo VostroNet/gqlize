@@ -2,7 +2,7 @@
 
 export default function waterfall(arr: any [] = [], func = ((val: any, prevVal: any): any => {}), start?: any) {
   if (!Array.isArray(arr)) {
-    throw new Error("IS NOT ARRAY");
+    arr = [arr];
   }
   return arr.reduce(function(promise: Promise<any>, val: any) {
     return promise.then(function(prevVal) {

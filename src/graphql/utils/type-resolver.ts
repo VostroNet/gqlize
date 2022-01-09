@@ -46,9 +46,13 @@ export default function typeResolver(nodeTypeMapper: NodeTypeMapper) {
 
     const nodeType = nodeTypeMapper.item(type);
     if (nodeType) {
-      return typeof nodeType.type === "string"
-        ? info.schema.getType(nodeType.type)
-        : nodeType.type;
+      let type;
+      if(typeof nodeType.type === "string") {
+        type = info.schema.getType(nodeType.type);
+      } else {
+        type = nodeType.type;
+      }
+      return type.name;
     }
 
     return null;

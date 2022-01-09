@@ -66,7 +66,7 @@ export default class GQLManager {
   globalHooks: {[name: string]: any};
   // this.reference = {};
   cache:  Cache;
-  defaultAdapter: GqlizeAdapter | undefined;
+  defaultAdapter: string | undefined;
   constructor(options: GqlizeOptions = {}) {
     this.defs = {};
     this.defsAdapters = {};
@@ -103,11 +103,11 @@ export default class GQLManager {
     });
   }
   registerAdapter = (adapter: GqlizeAdapter, overrideName?: string) => {
-    if (!this.defaultAdapter) {
-      this.defaultAdapter = adapter;
-    }
     if (overrideName) {
       adapter.adapterName = overrideName;
+    }    
+    if (!this.defaultAdapter) {
+      this.defaultAdapter = adapter.adapterName;
     }
     this.adapters[adapter.adapterName] =  adapter;
   }
@@ -116,7 +116,7 @@ export default class GQLManager {
     return (def.hooks || def.options?.hooks) || {};
   }
   addDefinition = async(def: Definition, adapterName?: string | undefined) => {
-    const datasource = adapterName || def.datasource || this.defaultAdapter?.adapterName
+    const datasource = adapterName || def.datasource || this.defaultAdapter
     if(!def.name) {
       throw new Error(`Attempting to add a definition without a name`);
     }
