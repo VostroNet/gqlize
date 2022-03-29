@@ -29,9 +29,9 @@ export function fromCursor(cursor: string) {
   let [id, index] = JSON.parse(unbase64(cursor));
   return {
     id,
-    index,
+    index: parseInt(index),
   };
 }
-export function toCursor(id: string, index: string) {
+export function toCursor(id: string, index: number) {
   return base64(JSON.stringify([id, index]));
 }

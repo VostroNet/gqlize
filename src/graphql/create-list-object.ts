@@ -105,7 +105,7 @@ export default function createListObject(instance: GQLManager, schemaCache: Sche
           startIndex = 0;
         }
         return {
-          cursor: toCursor(name, `${idx + startIndex}`),
+          cursor: toCursor(name, idx + startIndex),
           node: row,
         };
       });
