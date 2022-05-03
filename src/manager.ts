@@ -285,7 +285,7 @@ export default class GQLManager {
     const adapter = this.getModelAdapter(defName);
     return adapter.getValueFromInstance(data, keyName);
   }
-  initialise = async(reset = false) => {
+  initialise = async() => {
     await Promise.all(Object.keys(this.defs).map((defName) => {
       const def = this.defs[defName];
       const sourceAdapter = this.getModelAdapter(defName);
@@ -294,10 +294,19 @@ export default class GQLManager {
     }));
     await Promise.all(Object.keys(this.adapters).map((adapterName) => {
       const adapter = this.adapters[adapterName];
-      if (reset) {
-        return adapter.reset();
-      }
       return adapter.initialise();
+    }));
+  }
+  reset = async() => {
+    await Promise.all(Object.keys(this.adapters).map((adapterName) => {
+      const adapter = this.adapters[adapterName];
+      return adapter.reset();
+    }));
+  }
+  sync = async() => {
+    await Promise.all(Object.keys(this.adapters).map((adapterName) => {
+      const adapter = this.adapters[adapterName];
+      return adapter.sync();
     }));
   }
   getDefaultListArgs = (defName: string) => {

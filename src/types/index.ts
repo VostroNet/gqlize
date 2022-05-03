@@ -16,6 +16,7 @@ export interface GqlizeAdapter {
   createFunctionForFind: (modelName: string) => (keyValue: string, filterKey: string, singular: boolean) => ((...args: any) => any);
   reset: () => Promise<void>;
   initialise: () => Promise<void>;
+  sync: () => Promise<void>;
   // getGraphQLOutputType: (arg0: any, arg1: string, arg2: any) => any;
   // resolveClassMethod: (defName: string, methodName: string, source: any, args: any, context: any, info:any) => any;
   // getOrderByGraphQLType: (defName: string) => GraphQLOutputType;
