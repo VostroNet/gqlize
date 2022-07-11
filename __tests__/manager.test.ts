@@ -287,6 +287,7 @@ test("manager - resolveManyRelationship - hasMany", async() => {
 
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
   const Item = db.getModel("Item");
   const parent = await Item.create({});
   await Item.create({
@@ -332,6 +333,7 @@ test("manager - resolveManyRelationship - hasMany - with limit", async() => {
 
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
   const Item = db.getModel("Item");
   const parent = await Item.create({});
   await Item.create({
@@ -415,6 +417,7 @@ test("manager - resolveManyRelationship - belongsToMany", async() => {
   await db.addDefinition(childDef);
   await db.addDefinition(mappingDef);
   await db.initialise();
+  await db.sync();
   const Parent = db.getModel("Parent");
   const Child = db.getModel("Child");
   const parent = await Parent.create({});
@@ -492,6 +495,7 @@ test("manager - resolveManyRelationship - belongsToMany - with limit", async() =
   await db.addDefinition(childDef);
   await db.addDefinition(mappingDef);
   await db.initialise();
+  await db.sync();
   const Parent = db.getModel("Parent");
   const Child = db.getModel("Child");
   const parent = await Parent.create({});
@@ -534,6 +538,7 @@ test("manager - resolveSingleRelationship - belongsTo", async() => {
 
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
   const Item = db.getModel("Item");
   const parent = await Item.create({});
   const child = await Item.create({
@@ -567,6 +572,7 @@ test("manager - resolveSingleRelationship - hasOne", async() => {
 
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
   const Item = db.getModel("Item");
   const test = await Item.create({});
   const parent = await Item.create({

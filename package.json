@@ -1,6 +1,6 @@
 {
   "name": "@vostro/gqlize",
-  "version": "5.1.0",
+  "version": "5.1.1",
   "description": "A relational databinder for generating graphql schemas to connect and work with multi data sources",
   "main": "lib/index.js",
   "scripts": {

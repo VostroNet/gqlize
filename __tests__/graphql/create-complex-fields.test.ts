@@ -3,8 +3,7 @@ import SequelizeAdapter from "@vostro/gqlize-adapter-sequelize";
 import createComplexFieldsFunc from "../../src/graphql/create-complex-fields";
 import {GraphQLObjectType, GraphQLInt} from "graphql";
 import createSchemaCache from "../../src/graphql/create-schema-cache";
-import { Definition } from '../../src/types';
-import { GqlizeAdapter } from '../../lib/types/index';
+import { Definition, GqlizeAdapter } from '../../src/types';
 test("createComplexFieldsFunc - empty define", async() => {
   const db = new Database();
   db.registerAdapter(new SequelizeAdapter({}, {
@@ -31,6 +30,7 @@ test("createComplexFieldsFunc - empty define", async() => {
   } as Definition;
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
   const schemaCache = createSchemaCache();
   schemaCache.types.Item = new GraphQLObjectType({
     name: "Item",

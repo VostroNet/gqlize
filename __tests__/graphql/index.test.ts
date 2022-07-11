@@ -16,6 +16,7 @@ test("createModelType", async() => {
   };
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
   //(defName, instance, options, nodeInterface, typeCollection, prefix = "")
   const schemaCache = createSchemaCache();
   const graphqlModel = await createModelType(itemDef.name, db, {}, {}, schemaCache, "");

@@ -488,13 +488,13 @@ export default class GQLManager {
             }
             await Promise.all(targets.map(async(model: any) => {
               let m = await targetAdapter.update(model, i, defaultOptions);
-              if (targetDef.after) {
-                m = await targetDef.after({
-                  result: m, args, context, info,
-                  modelDefinition: targetDef,
-                  type: events.MUTATION_UPDATE,
-                });
-              }
+              // if (targetDef.after) {
+              //   m = await targetDef.after({
+              //     result: m, args, context, info,
+              //     modelDefinition: targetDef,
+              //     type: events.MUTATION_UPDATE,
+              //   });
+              // }
               const defName = targetDef.name;
               await this.processRelationshipMutation(defName, m, input, context, info);
               return m;
@@ -518,13 +518,13 @@ export default class GQLManager {
                 });
               }
               await this.processDelete(defName, source, arg, context, info);
-              if (targetDef.after) {
-                await targetDef.after({
-                  result: model, args, context, info,
-                  modelDefinition: targetDef,
-                  type: events.MUTATION_DELETE,
-                });
-              }
+              // if (targetDef.after) {
+              //   await targetDef.after({
+              //     result: model, args, context, info,
+              //     modelDefinition: targetDef,
+              //     type: events.MUTATION_DELETE,
+              //   });
+              // }
               return model;
             }));
           });
@@ -575,13 +575,13 @@ export default class GQLManager {
     let result;
     if (Object.keys(input).length > 0) {
       result = await processCreate(input, createGetGraphQLArgsFunc(context, info, source));
-      if (definition.after) {
-        result = definition.after({
-          result, args, context, info,
-          modelDefinition: definition,
-          type: events.MUTATION_CREATE,
-        });
-      }
+      // if (definition.after) {
+      //   result = definition.after({
+      //     result, args, context, info,
+      //     modelDefinition: definition,
+      //     type: events.MUTATION_CREATE,
+      //   });
+      // }
 
       if (result !== undefined && result !== null) {
         result = await this.processRelationshipMutation(defName, result, args.input, context, info);
@@ -629,13 +629,13 @@ export default class GQLManager {
 
     await waterfall(results, async(r: any) => {
       await this.processRelationshipMutation(defName, r, args.input, context, info);
-      if (definition.after) {
-        await definition.after({
-          result: r, args, context, info,
-          modelDefinition: definition,
-          type: events.MUTATION_UPDATE,
-        });
-      }
+      // if (definition.after) {
+      //   await definition.after({
+      //     result: r, args, context, info,
+      //     modelDefinition: definition,
+      //     type: events.MUTATION_UPDATE,
+      //   });
+      // }
     });
 
     return results;
@@ -657,14 +657,15 @@ export default class GQLManager {
       });
     };
     const after = (model: any) => {
-      if (!definition.after) {
-        return model;
-      }
-      return definition.after({
-        result: model, args, context, info,
-        modelDefinition: definition,
-        type: events.MUTATION_DELETE,
-      });
+      return model;
+      // if (!definition.after) {
+       
+      // }
+      // return definition.after({
+      //   result: model, args, context, info,
+      //   modelDefinition: definition,
+      //   type: events.MUTATION_DELETE,
+      // });
     };
     return processDelete(where, createGetGraphQLArgsFunc(context, info, source), before, after);
   }

@@ -4,10 +4,13 @@ import {GraphQLList} from "graphql";
 import waterfall from "../utils/waterfall";
 import GQLManager from '../manager';
 import { SchemaCache } from '../types';
+import { processAfter } from "./utils/after";
+import Events from "../events";
 
 export default function createMutationModel(instance: GQLManager, defName: string, schemaCache: SchemaCache, create: any, update: any, del: any) {
 
   const input = schemaCache.mutationInputs[defName];
+  const definition = instance.getDefinition(defName);
   let inp: any = {};
   if (create) {
     inp.create = {
@@ -37,19 +40,22 @@ export default function createMutationModel(instance: GQLManager, defName: strin
       if (args.create) {
         results = await waterfall(args.create, async(arg, arr) => {
           const result = await instance.processCreate(defName, source, {input: arg}, context, info);
-          return arr.concat(result);
+          const node = await processAfter(result, args, context, info, definition, Events.MUTATION_CREATE);
+          return arr.concat(node);
         }, results);
       }
       if (args.update) {
         results = await waterfall(args.update, async(arg, arr) => {
           const result = await instance.processUpdate(defName, source, arg, context, info);
-          return arr.concat(result);
+          const node = await waterfall(result, (el: any) => processAfter(el, args, context, info, definition, Events.MUTATION_UPDATE));
+          return arr.concat(node);
         }, results);
       }
       if (args.delete) {
         results = await waterfall(args.delete, async(arg, arr) => {
           const result = await instance.processDelete(defName, source, arg, context, info);
-          return arr.concat(result);
+          const node = await waterfall(result, (el: any) => processAfter(el, args, context, info, definition, Events.MUTATION_DELETE));
+          return arr.concat(node);
         }, results);
       }
       // if (!(args.create || args.update || args.delete) || args.where) {

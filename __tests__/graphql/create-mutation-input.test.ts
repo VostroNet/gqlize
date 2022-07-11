@@ -21,6 +21,7 @@ test("createMutationInput", async() => {
   };
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
   const inputTypes = {};
   const schemaCache = createSchemaCache();
   const result = createMutationInput(db, "Item", schemaCache, inputTypes, {});

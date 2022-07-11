@@ -6,7 +6,7 @@ import TaskModel from "./models/task";
 import TaskItemModel from "./models/task-item";
 import Item from "./models/item";
 import Sequelize from "sequelize";
-import { GqlizeAdapter } from '../../lib/types/index';
+import { GqlizeAdapter } from "../../src/types";
 
 export async function createInstance() {
   const db = new Database();
@@ -57,6 +57,7 @@ export async function createInstance() {
   db.addDefinition(Item);
 
   await db.initialise();
+  await db.sync();
   return db;
 }
 

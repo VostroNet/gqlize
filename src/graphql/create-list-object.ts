@@ -11,6 +11,9 @@ import { fromCursor, toCursor } from "./objects/cursor";
 import {capitalize} from "../utils/word";
 import { SchemaCache } from '../types';
 import GQLManager from "../manager";
+import waterfall from '../utils/waterfall';
+import { processAfter } from "./utils/after";
+import Events from "../events";
 
 function processDefaultArgs(args: { before: string; after: string; }) {
   const newArgs: any = {};
@@ -33,6 +36,7 @@ export default function createListObject(instance: GQLManager, schemaCache: Sche
     return schemaCache.lists[name]; //TODO: figure out why this is getting hit?
   }
   const orderBy = instance.getOrderByGraphQLType(targetDefName);
+  const definition = instance.getDefinition(targetDefName);
   const response = {
     description: comment,
     type: new GraphQLObjectType({
@@ -94,7 +98,8 @@ export default function createListObject(instance: GQLManager, schemaCache: Sche
         cursor = fromCursor(args.after || args.before);
       }
       const { total, models } = await resolveData(source, a, context, info);
-      const edges = models.map((row: any, idx: number) => {
+      const edges = await Promise.all(models.map(async(row: any, idx: number) => {
+        const node = await processAfter(row, a, context, info, definition, Events.QUERY);
         let startIndex = null;
         if (cursor) {
           startIndex = Number(cursor.index);
@@ -106,9 +111,9 @@ export default function createListObject(instance: GQLManager, schemaCache: Sche
         }
         return {
           cursor: toCursor(name, idx + startIndex),
-          node: row,
+          node,
         };
-      });
+      }));
 
       let startCursor, endCursor;
       if (edges.length > 0) {

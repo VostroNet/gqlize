@@ -33,6 +33,7 @@ test("createRelatedFieldsFunc - empty define", async() => {
   } as Definition;
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
   const schemaCache = createSchemaCache();
   schemaCache.types.Item = new GraphQLObjectType({
     name: "Item",

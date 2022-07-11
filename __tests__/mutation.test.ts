@@ -562,7 +562,8 @@ describe("mutations", () => {
       dialect: "sqlite",
     }) as GqlizeAdapter, "sqlite");
     db.addDefinition(taskModel);
-    await db.initialise(true);
+    await db.initialise();
+    await db.sync();
     const schema = await createSchema(db);
 
     const createMutation = `mutation {
@@ -620,7 +621,8 @@ describe("mutations", () => {
       dialect: "sqlite",
     }) as GqlizeAdapter, "sqlite");
     db.addDefinition(taskModel);
-    await db.initialise(true);
+    await db.initialise();
+    await db.sync();
     const {Task} = db.models;
     const item = await Task.create({
       name: "item2",
@@ -681,7 +683,8 @@ describe("mutations", () => {
       dialect: "sqlite",
     }) as GqlizeAdapter, "sqlite");
     db.addDefinition(taskModel);
-    await db.initialise(true);
+    await db.initialise();
+    await db.sync();
     const {Task} = db.models;
     const item = await Task.create({
       name: "item2",
@@ -1026,6 +1029,7 @@ test("add multiple ids", async() => {
   await db.addDefinition(parentDef, "sqlite");
   await db.addDefinition(childDef, "sqlite");
   await db.initialise();
+  await db.sync();
   // const ParentModel = db.getModel("Parent");
   const ChildModel = db.getModel("Child");
 
@@ -1177,6 +1181,7 @@ describe("2 degree mutation(nested)", () => {
     await db.addDefinition(parentDef, "sqlite");
     await db.addDefinition(childDef, "sqlite");
     await db.initialise();
+    await db.sync();
   });
   // afterAll(async() => {
   //   sqlite.reset();

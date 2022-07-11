@@ -11,8 +11,7 @@ import {
 } from "graphql";
 import Sequelize from "sequelize";
 import createSchemaCache from "../../src/graphql/create-schema-cache";
-import { Definition } from '../../src/types';
-import { GqlizeAdapter } from '../../lib/types/index';
+import { Definition, GqlizeAdapter } from '../../src/types';
 
 test("createBasicFieldsFunc - empty define", async() => {
   const db = new Database();
@@ -26,6 +25,7 @@ test("createBasicFieldsFunc - empty define", async() => {
   } as Definition;
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
   const schemaCache = createSchemaCache();
   const basicFieldsFunc = createBasicFieldsFunc(itemDef.name || "", db, itemDef, {}, schemaCache);
   expect(basicFieldsFunc).toBeInstanceOf(Function);
@@ -54,6 +54,7 @@ test("createBasicFieldsFunc - define", async() => {
   } as Definition;
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
   const schemaCache = createSchemaCache();
   const basicFieldsFunc = createBasicFieldsFunc(itemDef.name || "", db, itemDef, {}, schemaCache);
   expect(basicFieldsFunc).toBeInstanceOf(Function);
@@ -113,6 +114,7 @@ test("createBasicFieldsFunc - define - override", async() => {
   } as Definition;
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
   const schemaCache = createSchemaCache();
   const basicFieldsFunc = createBasicFieldsFunc(itemDef.name || "", db, itemDef, {}, schemaCache);
   expect(basicFieldsFunc).toBeInstanceOf(Function);
@@ -161,6 +163,7 @@ test("createBasicFieldsFunc - define - with scalar", async() => {
   };
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
 
   const schemaCache = createSchemaCache();
   const basicFieldsFunc = createBasicFieldsFunc(itemDef.name, db, itemDef, {}, schemaCache);
@@ -211,6 +214,7 @@ test("createBasicFieldsFunc - foreign keys", async() => {
   await db.addDefinition(itemDef);
   await db.addDefinition(itemChildDef);
   await db.initialise();
+  await db.sync();
   const schemaCache = createSchemaCache();
   const basicFieldsFunc = createBasicFieldsFunc(itemChildDef.name || "", db, itemChildDef, {}, schemaCache);
   expect(basicFieldsFunc).toBeInstanceOf(Function);

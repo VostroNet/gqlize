@@ -20,6 +20,7 @@ test("createListObject", async() => {
   };
   await db.addDefinition(itemDef);
   await db.initialise();
+  await db.sync();
   const {nodeInterface} = createNodeInterface(db);
   const schemaCache = createSchemaCache();
   schemaCache.types.Item = createModelType(itemDef.name, db, {}, nodeInterface, schemaCache);

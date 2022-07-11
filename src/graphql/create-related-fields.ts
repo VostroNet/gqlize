@@ -5,6 +5,7 @@ import { SchemaCache, GqlizeOptions, Definition, DefinitionFields, HookMap, Rela
 import GQLManager from '../manager';
 import { GraphQLType, GraphQLArgs } from "graphql";
 import Events from "../events";
+import { processAfter } from "./utils/after";
 
 export default function createRelatedFieldsFunc(
   defName: string,
@@ -48,8 +49,8 @@ export default function createRelatedFieldsFunc(
               f[relName] = {
                 type: targetObject,
                 description: ((definition.comments || {}).fields || {})[relName],
-                resolve(source: any, args: any, context: any, info: any) {
-                  return instance.resolveSingleRelationship(
+                async resolve(source: any, args: any, context: any, info: any) {
+                  const node = await instance.resolveSingleRelationship(
                     targetDef.name || "",
                     association,
                     source,
@@ -57,6 +58,8 @@ export default function createRelatedFieldsFunc(
                     context,
                     info,
                   );
+
+                  return processAfter(node, args, context, info, definition, Events.QUERY);
                 },
               };
               break;
