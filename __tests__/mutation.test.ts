@@ -416,7 +416,7 @@ describe("mutations", () => {
     }`;
     const result = await graphql({schema, source: mutation}) as any;
     validateResult(result);
-    expect(result.data.models.Task).toHaveLength(2);
+    expect(result.data.models.Task).toHaveLength(1);
     const queryResults = await graphql({schema, source:`{
       models {
         Task {

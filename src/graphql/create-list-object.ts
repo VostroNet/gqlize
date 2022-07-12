@@ -99,7 +99,10 @@ export default function createListObject(instance: GQLManager, schemaCache: Sche
       }
       const { total, models } = await resolveData(source, a, context, info);
       const edges = await Promise.all(models.map(async(row: any, idx: number) => {
-        const node = await processAfter(row, a, context, info, definition, Events.QUERY);
+        const node = await processAfter(row, a, context, info, definition, Events.OUTPUT);
+        if(!node) {
+          return undefined;
+        }
         let startIndex = null;
         if (cursor) {
           startIndex = Number(cursor.index);
@@ -113,8 +116,8 @@ export default function createListObject(instance: GQLManager, schemaCache: Sche
           cursor: toCursor(name, idx + startIndex),
           node,
         };
-      }));
-
+      })).then((edges: any) => edges.filter((e: any) => (e !== undefined && e !== null)));
+      
       let startCursor, endCursor;
       if (edges.length > 0) {
         startCursor = edges[0].cursor;

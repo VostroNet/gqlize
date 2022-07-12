@@ -388,16 +388,16 @@ export default class GQLManager {
         type: Events.QUERY,
       });
     }
-    let models = await adapter.findAll(defName, getOptions);
+    let models = (await adapter.findAll(defName, getOptions)).filter((m: any) => (m !== undefined && m !== null));
 
-    if (definition.after) {
-      const afterFunc = definition.after;
-      models = await Promise.all(models.map((m: any) => afterFunc({
-        result: m, args, context, info,
-        modelDefinition: definition,
-        type: events.QUERY,
-      })).filter((m: any) => (m !== undefined && m !== null)));
-    }
+    // if (definition.after) {
+    //   const afterFunc = definition.after;
+    //   models = await Promise.all(models.map((m: any) => afterFunc({
+    //     result: m, args, context, info,
+    //     modelDefinition: definition,
+    //     type: events.QUERY,
+    //   })).filter((m: any) => (m !== undefined && m !== null)));
+    // }
     let total;
     if (adapter.hasInlineCountFeature()) {
       total = await adapter.getInlineCount(models);
