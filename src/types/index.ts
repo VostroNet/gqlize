@@ -190,12 +190,16 @@ export type Definition = {
         [name: string]: {
           type: any;
           args?: any;
+          before?: any;
+          after?: any;
         }
       }
       mutations?: {
         [name: string]: {
           type: any;
           args?: any;
+          before?: any;
+          after?: any;
         }
       }
     },

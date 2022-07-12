@@ -408,10 +408,16 @@ export default class GQLManager {
       total, models,
     };
   }
-  resolveClassMethod = (defName: any, methodName: string | number, args: any, context: any) => {
+  resolveClassMethod = async(defName: any, methodName: string | number, args: any, context: any, before?: any, after?: any) => {
     const Model = this.getModel(defName);
-    //TODO: add before/after events?
-    return Model[methodName](args, context);
+    if(before) {
+      args = await before(args, context);
+    }
+    let result = await Model[methodName](args, context);
+    if(after) {
+      result = await after(result, context);
+    }
+    return result;
   }
 
   processInputs = async(defName: any, input: { [x: string]: any; }, args: any, context: any, info: any, model?: any) => {
@@ -452,9 +458,18 @@ export default class GQLManager {
         const args = input[key];
         if (args.create) {
           await waterfall(args.create, async(arg: any) => {
+            if (targetDef.before) {
+              arg = await targetDef.before({
+                params: arg, args, context, info,
+                modelDefinition: targetDef,
+                type: events.MUTATION_CREATE,
+              });
+            }
+
             const [result] = await this.processCreate(targetName, source, {input: arg}, context, info);
             // const targetAdapter = this.getModelAdapter(targetName);
             // const k = this.getValueFromInstance(targetName, result, targetAdapter.getPrimaryKeyNameForModel(targetName));
+            
             switch (association.associationType) {
               case "hasMany":
               case "belongsToMany":

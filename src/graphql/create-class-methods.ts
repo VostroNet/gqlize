@@ -41,8 +41,22 @@ export default function createClassMethods(instance: GQLManager, definitions: De
   };
 }
 
-export function createClassMethodFields(instance: GQLManager, defName: string, definition: Definition, query: { [x: string]: { type: any; args?: any; }; }, options: GqlizeOptions, schemaCache: SchemaCache, targetName: string) {
-  return waterfall(Object.keys(query), async(methodName: string, o: { [x: string]: { type: any; args: any; description: any; resolve(source: any, args: any, context: any, info: any): Promise<any>; }; }) => {
+export function createClassMethodFields(instance: GQLManager, defName: string, definition: Definition, query: {
+  [x: string]: { 
+    type: any; 
+    args?: any; 
+    before?: any;
+    after?: any;
+  };
+}, options: GqlizeOptions, schemaCache: SchemaCache, targetName: string) {
+  return waterfall(Object.keys(query), async(methodName: string, o: { 
+    [x: string]: {
+      type: any;
+      args: any;
+      description: any;
+      resolve(source: any, args: any, context: any, info: any): Promise<any>; 
+    };
+  }) => {
     if (options.permission) {
       if (options.permission.queryClassMethods && targetName === "query") {
         const result = await options.permission.queryClassMethods(defName, methodName, options.permission.options);
@@ -56,7 +70,7 @@ export function createClassMethodFields(instance: GQLManager, defName: string, d
         }
       }
     }
-    const {type, args} = query[methodName];
+    const {type, args, before, after} = query[methodName];
     let outputType = (typeof type === "string") ? schemaCache.types[type] : type;
     if (!outputType) {
       return o;
@@ -81,7 +95,7 @@ export function createClassMethodFields(instance: GQLManager, defName: string, d
       args: newArgs,
       description: (definition.comments?.classMethods || {})[methodName],
       async resolve(source: any, args: any, context: any, info: any) {
-        return instance.resolveClassMethod(defName, methodName, args, context);
+        return instance.resolveClassMethod(defName, methodName, args, context, before, after);
       },
     };
     return o;
