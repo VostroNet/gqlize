@@ -53,6 +53,7 @@
     "sequelize": "^6.21.3"
   },
   "dependencies": {
+    "@vostro/object-visit": "^1.0.1",
     "deepmerge": "^4.2.2",
     "pluralize": "^8.0.0"
   }
