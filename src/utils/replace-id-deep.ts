@@ -13,9 +13,9 @@ export default function replaceIdDeep(obj: any, keyMap: string[], variableValues
   const result = objVisit(obj, {
     [OKind.ARRAY]: {
       enter(node, key, parent, path, ancestors) {
-        if(node instanceof Function) {
-          node = node(variableValues);
-        }
+        // if(node instanceof Function) {
+        //   node = node(variableValues);
+        // }
         if(key && !tagged && keyMap.indexOf(`${key}`) > -1) {
           tagged = true;          
         }
@@ -30,9 +30,9 @@ export default function replaceIdDeep(obj: any, keyMap: string[], variableValues
     },
     [OKind.OBJECT]: {
       enter(node, key, parent, path, ancestors) {
-        if(node instanceof Function) {
-          node = node(variableValues);
-        }
+        // if(node instanceof Function) {
+        //   node = node(variableValues);
+        // }
         if(key && !tagged && keyMap.indexOf(`${key}`) > -1) {
           tagged = true;          
         }
@@ -47,9 +47,9 @@ export default function replaceIdDeep(obj: any, keyMap: string[], variableValues
     },
     [OKind.FIELD]: {
       enter(node, key, parent, path, ancestors) {
-        if (node instanceof Function) {
-          node = node(variableValues);
-        }
+        // if (node instanceof Function) {
+        //   node = node(variableValues);
+        // }
         if (key && !tagged && keyMap.indexOf(`${key}`) > -1) {
           tagged = true;          
         }
