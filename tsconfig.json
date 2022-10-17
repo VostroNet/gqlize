@@ -26,5 +26,8 @@
     // "excludeFiles": ["node_modules/**/*", "lib/**/*"]
 
     
+  },
+  "ts-node": {
+    
   }
 }

@@ -1,6 +1,22 @@
 {
   "version": "0.2.0",
   "configurations": [
+    {
+      "name": "Launch Express Debug",
+      "type": "node",
+      "request": "launch",
+      "args": [
+        "./__tests__/helper/express.ts"
+      ],
+      "runtimeArgs": [
+        "-r",
+        "ts-node/register"
+      ],
+      "cwd": "${workspaceRoot}",
+      "protocol": "inspector",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+
 
     {
       "type": "node",
@@ -10,20 +26,8 @@
       "args": [
         "--runInBand"
       ],
-      "disableOptimisticBPs": true,
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
-   }, {
-    "name": "Launch Express Debug",
-    "type": "node",
-    "request": "launch",
-    "disableOptimisticBPs": true,
-    "args": ["--trace-deprecation", "-r", "@babel/register", "./__tests__/helper/express.js"],
-    "env": {
-      "NODE_ENV": "development",
-      "DEBUG": "sql*"
-    },
-    "console": "integratedTerminal"
-  }]
+   }]
 }

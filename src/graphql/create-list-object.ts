@@ -5,6 +5,7 @@ import {
   GraphQLList,
   GraphQLInt,
   GraphQLString,
+  FieldNode,
 } from "graphql";
 
 import { fromCursor, toCursor } from "./objects/cursor";
@@ -14,6 +15,9 @@ import GQLManager from "../manager";
 import waterfall from '../utils/waterfall';
 import { processAfter } from "./utils/after";
 import Events from "../events";
+import {visit, Kind, DocumentNode, GraphQLFieldConfig, GraphQLFieldConfigArgumentMap, OperationDefinitionNode} from "graphql";
+
+
 
 function processDefaultArgs(args: { before: string; after: string; }) {
   const newArgs: any = {};
@@ -92,6 +96,72 @@ export default function createListObject(instance: GQLManager, schemaCache: Sche
       }
     }, instance.getDefaultListArgs(targetDefName)),
     async resolve(source: any, args: { after: any; before: any; first: any; last: any; }, context: any, info: any) {
+
+
+      const ignoreFields = ["edges", "node"]
+      const schemaPath: string[] = []
+      const queryMapArr: any = [];
+      let arg = {};
+      visit(info.fieldNodes, {
+        [Kind.FIELD]: {
+          enter(node, key, parent, path, ancestors) {
+            if(ignoreFields.indexOf(node.name.value) > -1) {
+              return node;
+            }
+            // test if field 
+            if(schemaPath.length === 0) {
+              schemaPath.push(targetDefName)
+              queryMapArr.push({
+                __type: targetDefName,
+                __args: []
+              })
+            } else {
+
+              const currentModel = schemaPath[schemaPath.length - 1];
+              const currentDef = instance.getDefinition(currentModel);
+
+              if (node.selectionSet) {
+                const rel = currentDef.relationships?.find((r) => r.name === node.name.value);
+                schemaPath.push(rel?.model || "")
+                queryMapArr.push({
+                  __type: rel?.model || "",
+                  __rel: rel,
+                  __args: []
+                });
+              } else {
+                queryMapArr[queryMapArr.length - 1][node.name.value] = (currentDef.define || {})[node.name.value] || true;
+              }
+            }
+
+            return node;
+          },
+          leave(node, key, parent, path, ancestors) {
+            if (ignoreFields.indexOf(node.name.value) > -1) {
+              return node;
+            }
+            if (node.selectionSet && schemaPath.length > 1) {
+              schemaPath.pop();
+              const data = queryMapArr.pop();
+              queryMapArr[queryMapArr.length - 1][node.name.value] = data;
+            }
+            return node;
+          }
+        },
+        [Kind.ARGUMENT]: {
+          enter(node, key, parent, path, ancestors) {
+            // convert object field to std obj
+            return node;
+          },
+          leave(node, key, parent, path, ancestors) {
+
+            queryMapArr[queryMapArr.length - 1].__args.push(setArg);
+          }
+        },
+        [Kind.O]
+      });
+      const queryMap = queryMapArr[0];
+      console.log("test", queryMap)
+
       const a = processDefaultArgs(args);
       let cursor: { index: any; id?: any; } | null = null;
       if (args.after || args.before) {
