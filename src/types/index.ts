@@ -107,16 +107,29 @@ export type Association = {
   }
 }
 
+export enum RelationshipType {
+  BelongsTo = "belongsTo",
+  HasOne = "hasOne",
+  HasMany = "hasMany",
+  BelongsToMany = "belongsToMany"
+}
+
 export type Relationship = {
   model: string; 
   name: string;
-  type: string;
+  type: string | RelationshipType;
   target?: string;
   rel?: Association;
   options: {
     as?: string;
     foreignKey?: string;
     sourceKey?: string;
+    constraints?: boolean;
+    through?: {
+      model?: string;
+      foreignKey?: string;
+      otherKey?: string;
+    };
   };
 }
 
