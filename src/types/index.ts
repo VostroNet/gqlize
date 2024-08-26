@@ -14,9 +14,9 @@ export interface GqlizeAdapter {
   createRelationship: (defName: string, modelName: string, relName: string, relType: string, relOptons: any) => any;
   getPrimaryKeyNameForModel: (modelName: string) => string[];
   createFunctionForFind: (modelName: string) => (keyValue: string, filterKey: string, singular: boolean) => ((...args: any) => any);
-  reset: () => Promise<void>;
+  reset: (options?: any) => Promise<void>;
   initialise: () => Promise<void>;
-  sync: () => Promise<void>;
+  sync: (options?: any) => Promise<void>;
   // getGraphQLOutputType: (arg0: any, arg1: string, arg2: any) => any;
   // resolveClassMethod: (defName: string, methodName: string, source: any, args: any, context: any, info:any) => any;
   // getOrderByGraphQLType: (defName: string) => GraphQLOutputType;
@@ -129,7 +129,7 @@ export type Relationship = {
       model?: string;
       foreignKey?: string;
       otherKey?: string;
-    };
+    } | string;
   };
 }
 
@@ -164,6 +164,12 @@ export type DefinitionField = {
   args?: any;
   comment?: string;
   defaultValue?: any;
+  values?: string[];
+  validate?:  {
+    [key: string]: {
+      [key: string]: any
+    };
+  }
 }
 
 export type DefinitionFields = {

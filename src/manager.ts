@@ -7,6 +7,7 @@ import {capitalize} from "./utils/word";
 import events from "./events";
 import { Definitions, GqlizeAdapter, GqlizeOptions, Definition, HookMap, Relationship, Model, Association } from './types';
 import Events from "./events";
+import { GraphQLResolveInfo, visit } from "graphql";
 
 const hookList = [
   "beforeValidate",
@@ -297,16 +298,16 @@ export default class GQLManager {
       return adapter.initialise();
     }));
   }
-  reset = async() => {
+  reset = async(options: any) => {
     await Promise.all(Object.keys(this.adapters).map((adapterName) => {
       const adapter = this.adapters[adapterName];
-      return adapter.reset();
+      return adapter.reset(options);
     }));
   }
-  sync = async() => {
+  sync = async(options?: any) => {
     await Promise.all(Object.keys(this.adapters).map((adapterName) => {
       const adapter = this.adapters[adapterName];
-      return adapter.sync();
+      return adapter.sync(options);
     }));
   }
   getDefaultListArgs = (defName: string) => {
@@ -325,7 +326,7 @@ export default class GQLManager {
     const definition = this.getDefinition(defName);
     return adapter.getFilterGraphQLType(defName, definition);
   }
-  resolveManyRelationship = async(defName: string, association: Association, source: Model, args: any, context: any, info: any) => {
+  resolveManyRelationship = async(defName: string, association: Association, source: Model, args: any, context: any, info: GraphQLResolveInfo) => {
 
     const options = createGetGraphQLArgsFunc(context, info, source);
 
@@ -359,7 +360,7 @@ export default class GQLManager {
     const options = createGetGraphQLArgsFunc(context, info, source);
     return adapter.resolveSingleRelationship(defName, association, source, args, context, info, options);
   }
-  resolveFindAll = async(defName: any, source: any, args: { after: { index: number; }; before: { index: number; }; limit: any; }, context: any, info: { variableValues: any; fieldNodes: any[]; }) => {
+  resolveFindAll = async(defName: any, source: any, args: { after: { index: number; }; before: { index: number; }; limit: any; }, context: any, info:  GraphQLResolveInfo) => {
     const definition = this.getDefinition(defName);
     const adapter = this.getModelAdapter(defName);
     const a = await adapter.replaceIdInArgs(args, defName, info.variableValues);
@@ -388,6 +389,29 @@ export default class GQLManager {
         type: Events.QUERY,
       });
     }
+    const {returnType} = info;
+    console.log("rr", returnType)
+    let include = {};
+    
+    visit(info.fieldNodes[0], {
+      Field: {
+        enter(node: any) {
+          return node;
+        },
+        leave(node: any) {
+          return node;
+        },
+      },
+      Argument: {
+        enter(node: any) {
+          return node;
+        },
+        leave(node: any) {
+          return node;
+        },
+      },
+    });
+
     let models = (await adapter.findAll(defName, getOptions)).filter((m: any) => (m !== undefined && m !== null));
 
     // if (definition.after) {

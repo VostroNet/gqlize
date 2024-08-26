@@ -301,6 +301,61 @@ describe("queries", () => {
     expect(queryResult.data.models.Item.edges[0].node.parent).not.toBeNull();
     expect(queryResult.data.models.Item.edges[0].node.children.edges).toHaveLength(1);
   });
+
+  it("test relationships - hasMany - inner where", async() => {
+    const instance = await createInstance();
+    const schema = await createSchema(instance);
+    const mutation = `mutation {
+      models {
+        Item(
+          create: {
+            name: "item"
+            children: {
+              create: [{ name: "item1" }, { name: "item2" }]
+            }
+          }
+        ) {
+          id
+          name
+        }
+      }
+    }`;
+    const itemResult = await graphql({schema, source:mutation}) as any;
+    validateResult(itemResult);
+
+    const queryResult = await graphql({schema, source:`query {
+      models {
+        Item(where: {
+          name: {eq:"item"}
+        }) {
+          edges {
+            node {
+              id
+              name
+              parentId
+              children(where: {name: {eq: "item2"}}) {
+                edges {
+                  node {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }`}) as any;
+    validateResult(queryResult);
+    expect(queryResult.data.models.Item.edges).toHaveLength(1);
+    expect(queryResult.data.models.Item.edges[0].node).not.toBeNull();
+    expect(queryResult.data.models.Item.edges[0].node.name).toBe("item");
+    expect(queryResult.data.models.Item.edges[0].node.children.edges).toHaveLength(1);
+    expect(queryResult.data.models.Item.edges[0].node.children.edges[0].node.name).toBe("item2");
+
+  });
+
+  
   it("test relationships - belongsTo", async() => {
     const instance = await createInstance();
     const schema = await createSchema(instance);

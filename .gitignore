@@ -8,3 +8,4 @@ build
 docs
 lib
 .yalc
+cjs

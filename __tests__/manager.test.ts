@@ -297,7 +297,7 @@ test("manager - resolveManyRelationship - hasMany", async() => {
     parentId: parent.id,
   });
   const assoc = db.getAssociations(itemDef.name).children;
-  const {total, models} = await db.resolveManyRelationship(itemDef.name, assoc, parent, {}, {}, {});
+  const {total, models} = await db.resolveManyRelationship(itemDef.name, assoc, parent, {}, {}, {} as any);
   expect(total).toEqual(2);
   expect(models).toHaveLength(2);
 });
@@ -345,7 +345,7 @@ test("manager - resolveManyRelationship - hasMany - with limit", async() => {
   const assoc = db.getAssociations(itemDef.name).children;
   const {total, models} = await db.resolveManyRelationship(itemDef.name, assoc, parent, {
     first: 1,
-  }, {}, {});
+  }, {}, {} as any);
   expect(total).toEqual(2);
   expect(models).toHaveLength(1);
 });
@@ -425,7 +425,7 @@ test("manager - resolveManyRelationship - belongsToMany", async() => {
   await parent.addChild(await Child.create({}));
 
   const assoc = db.getAssociations(parentDef.name).children;
-  const {total, models} = await db.resolveManyRelationship(parentDef.name, assoc, parent, {}, {}, {});
+  const {total, models} = await db.resolveManyRelationship(parentDef.name, assoc, parent, {}, {}, {} as any);
   expect(total).toEqual(2);
   expect(models).toHaveLength(2);
 });
@@ -503,7 +503,7 @@ test("manager - resolveManyRelationship - belongsToMany - with limit", async() =
   await parent.addChild(await Child.create({}));
 
   const assoc = db.getAssociations(parentDef.name).children;
-  const {total, models} = await db.resolveManyRelationship(parentDef.name, assoc, parent, {first: 1}, {}, {});
+  const {total, models} = await db.resolveManyRelationship(parentDef.name, assoc, parent, {first: 1}, {}, {} as any);
   expect(total).toEqual(2);
   expect(models).toHaveLength(1);
 });
