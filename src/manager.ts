@@ -389,8 +389,8 @@ export default class GQLManager {
         type: Events.QUERY,
       });
     }
-    const {returnType} = info;
-    console.log("rr", returnType)
+    // const {returnType} = info;
+    // console.log("rr", returnType)
     let include = {};
     
     visit(info.fieldNodes[0], {
@@ -511,7 +511,7 @@ export default class GQLManager {
           await waterfall(args.update, async(arg: { where: any; limit: any; input: any; }) => {
             const {where, limit, input} = arg;
             // const [result] = await this.processUpdate(targetName, source, {input: arg}, context, info);
-            const whereObj = await targetAdapter.processFilterArgument(replaceIdDeep(where, targetGlobalKeys, info.variableValues), targetDef.whereOperators);
+            const whereObj = await targetAdapter.processFilterArgument(replaceIdDeep(where, targetGlobalKeys, info.variableValues), targetDef.whereOperators, defaultOptions);
             const targets = await source[association.accessors.get]({
               limit,
               where: whereObj,
@@ -543,7 +543,7 @@ export default class GQLManager {
         if (args.delete) {
           await waterfall(args.delete, async(arg: any) => {
             const targets = await source[association.accessors.get](Object.assign({
-              where: await targetAdapter.processFilterArgument(replaceIdDeep(arg, targetGlobalKeys, info.variableValues), targetDef.whereOperators),
+              where: await targetAdapter.processFilterArgument(replaceIdDeep(arg, targetGlobalKeys, info.variableValues), targetDef.whereOperators, defaultOptions),
             }, defaultOptions));
             // let i = await this.processInputs(targetName, input, source, args, context, info);
             await Promise.all(targets.map(async(model: any) => {
@@ -570,7 +570,7 @@ export default class GQLManager {
         }
         if (args.remove) {
           await waterfall(args.remove, async(arg: any) => {
-            const where = await targetAdapter.processFilterArgument(replaceIdDeep(arg, targetGlobalKeys, info.variableValues), targetDef.whereOperators);
+            const where = await targetAdapter.processFilterArgument(replaceIdDeep(arg, targetGlobalKeys, info.variableValues), targetDef.whereOperators, defaultOptions);
             const results = await targetAdapter.findAll(targetName, Object.assign({
               where,
             }, defaultOptions));
@@ -583,7 +583,7 @@ export default class GQLManager {
 
         if (args.add) {
           await waterfall(args.add, async(arg: any) => {
-            const where = await targetAdapter.processFilterArgument(replaceIdDeep(arg, targetGlobalKeys, info.variableValues), targetDef.whereOperators);
+            const where = await targetAdapter.processFilterArgument(replaceIdDeep(arg, targetGlobalKeys, info.variableValues), targetDef.whereOperators, defaultOptions);
             const results = await targetAdapter.findAll(targetName, Object.assign({
               where,
             }, defaultOptions));

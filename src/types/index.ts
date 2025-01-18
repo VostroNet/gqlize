@@ -35,7 +35,7 @@ export interface GqlizeAdapter {
   findAll: (defName: string, options: any) => Promise<any>
   getInlineCount: (models: any) => Promise<number>;
   count: (defName: string, options: any) => Promise<number>;
-  processFilterArgument: (where: any, whereOperators: any) => any
+  processFilterArgument: (where: any, whereOperators: any, options: any) => any
   update: (model: any, i: any, defaultOptions: any) => Promise<any>;
   getCreateFunction: (defName: string) => any;
   getUpdateFunction: (defName: string, whereOperators: WhereOperators | undefined) => any;
