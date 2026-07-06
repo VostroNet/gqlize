@@ -17,7 +17,7 @@ export default function createComplexFieldsFunc(
       if (definition.expose?.instanceMethods?.query) {
         const instanceMethods = definition.expose.instanceMethods.query;
         Object.keys(instanceMethods).forEach((methodName) => {
-          const {type, args} = instanceMethods[methodName];
+          const {type, args, before, after} = instanceMethods[methodName];
           let targetType = (typeof type === "string") ? schemaCache.types[type] : type;
           if (!targetType) {
             //target does not exist.. excluded from base types?
@@ -34,7 +34,14 @@ export default function createComplexFieldsFunc(
             args,
             description: (definition.comments?.fields || {})[methodName],
             async resolve(source: any, args: any, context: any, info: any) {
-              return source[methodName].apply(source, [args, context]);
+              if (before) {
+                args = await before(args, context);
+              }
+              let result = await source[methodName].apply(source, [args, context]);
+              if (after) {
+                result = await after(result, context);
+              }
+              return result;
             },
           };
         });
